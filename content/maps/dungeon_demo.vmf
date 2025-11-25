@@ -1,0 +1,101 @@
+"versioninfo"
+{
+	"editorversion" "400"
+	"editorbuild" "9120"
+	"mapversion" "2"
+	"formatversion" "100"
+	"prefab" "0"
+}
+"viewsettings"
+{
+	"bSnapToGrid" "1"
+	"bShowGrid" "1"
+	"bShowLogicalGrid" "0"
+	"nGridSpacing" "64"
+	"bShow3DGrid" "0"
+}
+"world"
+{
+	"id" "1"
+	"mapversion" "1"
+	"classname" "worldspawn"
+	"skyname" "sky_day01_01"
+	"maxpropscreenwidth" "-1"
+	"detailvbsp" "detail.vbsp"
+	"defaultlightmapscale" "16"
+	"solid"
+	[
+		{ "id" "2" "side"
+			[ // 主城地面
+				{ "id" "3" "plane" "(0 0 0) (0 1024 0) (1024 1024 0)" "material" "nature/dirtground005" }
+				{ "id" "4" "plane" "(1024 1024 0) (1024 0 0) (0 0 0)" "material" "nature/dirtground005" }
+				{ "id" "5" "plane" "(0 0 128) (1024 0 128) (1024 1024 128)" "material" "tools/toolsnodraw" }
+				{ "id" "6" "plane" "(1024 1024 128) (0 1024 128) (0 0 128)" "material" "tools/toolsnodraw" }
+				{ "id" "7" "plane" "(0 0 0) (1024 0 0) (1024 0 128)" "material" "tools/toolsnodraw" }
+				{ "id" "8" "plane" "(0 0 128) (0 0 0) (0 1024 0)" "material" "tools/toolsnodraw" }
+			]
+		}
+		{ "id" "9" "side"
+			[ // 副本1地面
+				{ "id" "10" "plane" "(2048 0 0) (2048 1024 0) (3072 1024 0)" "material" "nature/grassfloor003a" }
+				{ "id" "11" "plane" "(3072 1024 0) (3072 0 0) (2048 0 0)" "material" "nature/grassfloor003a" }
+				{ "id" "12" "plane" "(2048 0 128) (3072 0 128) (3072 1024 128)" "material" "tools/toolsnodraw" }
+				{ "id" "13" "plane" "(3072 1024 128) (2048 1024 128) (2048 0 128)" "material" "tools/toolsnodraw" }
+				{ "id" "14" "plane" "(2048 0 0) (3072 0 0) (3072 0 128)" "material" "tools/toolsnodraw" }
+				{ "id" "15" "plane" "(2048 0 128) (2048 0 0) (2048 1024 0)" "material" "tools/toolsnodraw" }
+			]
+		}
+		{ "id" "16" "side"
+			[ // 副本2地面
+				{ "id" "17" "plane" "(4096 0 0) (4096 1024 0) (5120 1024 0)" "material" "nature/grassfloor003a" }
+				{ "id" "18" "plane" "(5120 1024 0) (5120 0 0) (4096 0 0)" "material" "nature/grassfloor003a" }
+				{ "id" "19" "plane" "(4096 0 128) (5120 0 128) (5120 1024 128)" "material" "tools/toolsnodraw" }
+				{ "id" "20" "plane" "(5120 1024 128) (4096 1024 128) (4096 0 128)" "material" "tools/toolsnodraw" }
+				{ "id" "21" "plane" "(4096 0 0) (5120 0 0) (5120 0 128)" "material" "tools/toolsnodraw" }
+				{ "id" "22" "plane" "(4096 0 128) (4096 0 0) (4096 1024 0)" "material" "tools/toolsnodraw" }
+			]
+		}
+	]
+	"entity"
+	[
+		{ "id" "100"
+			"classname" "info_player_start" // 主城出生点
+			"origin" "512 512 128"
+			"angles" "0 90 0"
+		}
+		{ "id" "101"
+			"classname" "npc_dota_creature"
+			"targetname" "dungeon_npc"
+			"origin" "800 512 128"
+			"angles" "0 0 0"
+			"model" "models/props_structures/good_statue001.vmdl"
+		}
+		{ "id" "102"
+			"classname" "info_target" // 副本门出口路点
+			"targetname" "room1_spawn"
+			"origin" "2300 512 128"
+		}
+		{ "id" "103"
+			"classname" "info_target"
+			"targetname" "room2_spawn"
+			"origin" "4350 512 128"
+		}
+		{ "id" "104"
+			"classname" "info_target"
+			"targetname" "boss_spawn"
+			"origin" "4500 800 128"
+		}
+	]
+}
+
+"cameras"
+{
+	"activecamera" "-1"
+}
+
+"cordon"
+{
+	"active" "0"
+	"mins" "(0 0 0)"
+	"maxs" "(8192 8192 8192)"
+}

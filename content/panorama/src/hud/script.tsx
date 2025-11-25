@@ -15,6 +15,7 @@ import { render } from 'react-panorama-x';
 import { PanoramaQRCode } from '../utils/react-panorama-qrcode';
 import { DispatchEventAction, FunctionAction, RunSequentialActions, WaitAction } from '../utils/sequential-actions';
 import React from 'react';
+import { RageBar } from './rage_bar/rage_bar';
 import { setKeyDownCallback, useKeyPressed } from '../hooks/useKeyboard';
 import { registerCustomKey } from '../utils/keybinding';
 
@@ -44,8 +45,9 @@ const Root: FC = () => {
     const dPressed = useKeyPressed(`D`);
 
     return (
-        <>
+        <><RageBar />
             {
+
                 // 显示一个二维码作为范例
                 <PanoramaQRCode
                     style={{ preTransformScale2d: dPressed ? `1.5` : `1` }}

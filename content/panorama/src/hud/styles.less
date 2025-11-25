@@ -1,6 +1,3 @@
-@import "../utils/draggable_window/draggable_window.less";
-@import "../utils/flame_graph/flame_graph.less";
-
 .root {
     width: 100%;
     height: 100%;
@@ -20,4 +17,45 @@
     &:active {
         opacity: 0.8;
     }
+}
+
+.rage-bar-container {
+    width: 400px;              // 宽度
+    height: 28px;              // 高度
+    horizontal-align: center;    // 改为 center 试试
+    vertical-align: bottom;    // 保持 bottom
+    margin-bottom: 150px;      // 增大这个值，怒气条会上移
+    margin-left: 0px;          // 如果 horizontal-align: center，设为 0
+    z-index: 100;
+}
+
+.rage-bar-bg {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(139, 0, 0, 0.9);
+    border-radius: 3px;
+    overflow: clip;
+}
+
+.rage-bar-fill {
+    width: 0%;
+    height: 100%;
+    background-color: #ff4500;
+    transition-property: width;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+    box-shadow: inset 0 0 10px rgba(255, 69, 0, 0.6);
+}
+
+.rage-text {
+    width: 100%;
+    height: 28px;  // 固定高度
+    line-height: 28px;  // 行高等于容器高度，实现垂直居中
+    text-align: center;
+    font-size: 16px;  
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px #000000;
+    letter-spacing: 0.5px;
 }

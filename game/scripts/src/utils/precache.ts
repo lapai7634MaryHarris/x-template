@@ -3,7 +3,37 @@
 export default function Precache(context: CScriptPrecacheContext) {
     // 需要预载的所有资源
     precacheResource(
-        [
+        [ // === 雷霆一击（E 技能） ===
+            'particles/units/heroes/hero_brewmaster/brewmaster_thunder_clap.vpcf',
+            'particles/units/heroes/hero_zuus/zuus_lightning_bolt.vpcf',
+            'soundevents/game_sounds_heroes/game_sounds_brewmaster.vsndevts',
+            'soundevents/game_sounds_heroes/game_sounds_zuus.vsndevts',
+            
+            // === 重伤（先天技能） ===
+            'particles/units/heroes/hero_bloodseeker/bloodseeker_rupture.vpcf',
+            'particles/units/heroes/hero_bloodseeker/bloodseeker_bloodbath.vpcf',
+            'particles/units/heroes/hero_phantom_assassin/phantom_assassin_crit_impact.vpcf',
+            'soundevents/game_sounds_heroes/game_sounds_bloodseeker.vsndevts',
+            'soundevents/game_sounds_heroes/game_sounds_phantom_assassin.vsndevts',
+            
+            // === 冲锋（Q 技能） ===
+            'particles/units/heroes/hero_spirit_breaker/spirit_breaker_charge.vpcf',
+            'soundevents/game_sounds_heroes/game_sounds_spirit_breaker.vsndevts',
+            
+            // === 巨人打击（W 技能） ===
+            'particles/units/heroes/hero_sven/sven_spell_great_cleave.vpcf',
+            'soundevents/game_sounds_heroes/game_sounds_sven.vsndevts',
+            'particles/units/heroes/hero_elder_titan/elder_titan_echo_stomp_cracks.vpcf',
+            'particles/units/heroes/hero_zuus/zuus_arc_lightning.vpcf',
+
+
+            'particles/units/heroes/hero_juggernaut/juggernaut_omni_slash_tgt.vpcf',
+            'particles/units/heroes/hero_juggernaut/juggernaut_crit_blur.vpcf',
+            'soundevents/game_sounds_heroes/game_sounds_juggernaut.vsndevts',
+
+            // === 通用特效 ===
+            'particles/generic_gameplay/generic_hit_blood.vpcf',
+            'soundevents/game_sounds_heroes/game_sounds_earthshaker.vsndevts',
             // '***.vpcf',
             // 'soundevents/game_sounds_heroes/game_sounds_queenofpain.vsndevts',
             // '***.vmdl',
@@ -14,7 +44,7 @@ export default function Precache(context: CScriptPrecacheContext) {
     precacheEveryResourceInKV(
         [
             // kv文件路径
-            // 'npc_abilities_custom.txt',
+            'npc_abilities_custom.txt',
         ],
         context
     );

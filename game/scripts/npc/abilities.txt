@@ -64,4 +64,16 @@
             "particle"  "particles/units/heroes/hero_tiny/tiny_toss_blur.vpcf"
 		}
 	}
+	"charge" {
+		"AbilityValues" {
+		}
+	}
+	"giant_smite" {
+		"AbilityValues" {
+		}
+	}
+	"warrior_deep_wound" {
+		"AbilityValues" {
+		}
+	}
 }

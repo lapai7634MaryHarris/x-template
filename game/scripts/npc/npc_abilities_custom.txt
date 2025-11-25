@@ -2,4 +2,221 @@
 
 "DOTAAbilities"
 {
+    "charge"
+    {
+        "BaseClass"                     "ability_lua"
+        "ScriptFile"                    "examples/abilities/warrior_charge"
+        "AbilityTextureName"            "spirit_breaker_charge_of_darkness"
+        
+        "AbilityBehavior"               "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET"
+        "AbilityUnitTargetTeam"         "DOTA_UNIT_TARGET_TEAM_ENEMY"
+        "AbilityUnitTargetType"         "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC"
+        "AbilityUnitDamageType"         "DAMAGE_TYPE_PHYSICAL"
+        "SpellImmunityType"             "SPELL_IMMUNITY_ENEMIES_YES"
+        
+        "AbilityCastAnimation"          "ACT_DOTA_CAST_ABILITY_1"
+        "AbilityCastPoint"              "0.3"
+        "AbilityCastRange"              "3000"
+        
+        "MaxLevel"                      "1"
+        "AbilityCooldown"               "15.0"
+        "AbilityManaCost"               "0"
+        
+        "AbilityValues"
+        {
+            "speed"                 "1200"
+            "collision_radius"      "150"
+            "base_damage"           "120"
+            "max_damage"            "300"
+            "rage_gain"             "20"
+            "stun_duration"         "1.0"
+            "max_duration"          "5.0"
+        }
+        
+        "AbilityDescription"            "[Q] 冲锋：向目标冲锋，基于距离造成 120-300 物理伤害并眩晕 1 秒，击中回复 20 怒气。"
+    }
+
+    "axe_giant_strike"
+    {
+        "BaseClass"                     "ability_lua"
+        "ScriptFile"                    "examples/abilities/axe_giant_strike"
+        "AbilityTextureName"            "axe_culling_blade"
+        
+        "AbilityBehavior"               "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET"
+        "AbilityUnitTargetTeam"         "DOTA_UNIT_TARGET_TEAM_ENEMY"
+        "AbilityUnitTargetType"         "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC"
+        "AbilityUnitDamageType"         "DAMAGE_TYPE_PHYSICAL"
+        "SpellImmunityType"             "SPELL_IMMUNITY_ENEMIES_YES"
+        
+        "AbilityCastAnimation"          "ACT_DOTA_ATTACK"
+        "AbilityCastPoint"              "0.2"
+        "AbilityCastRange"              "150"
+        
+        "MaxLevel"                      "1"
+        "AbilityCooldown"               "12.0"
+        "AbilityManaCost"               "0"
+        
+        "AbilityValues"
+        {
+            "rage_cost"             "20"
+            "damage_multiplier"     "1.5"
+            "damage_amplify"        "30"
+            "duration"              "5.0"
+        }
+        
+        "AbilityDescription"            "[W] 巨人打击：消耗20怒气，对目标造成150%最大攻击力的物理伤害，5秒内使目标受到来自武器战士额外30%伤害。"
+    }
+ "warrior_deep_wound"
+    {
+        "BaseClass"                     "ability_lua"
+        "ScriptFile"                    "examples/abilities/warrior_deep_wound"
+        "AbilityTextureName"            "bloodseeker_rupture"
+        
+        // 🔧 关键配置
+        "AbilityBehavior"               "DOTA_ABILITY_BEHAVIOR_PASSIVE"
+        "MaxLevel"                      "1"
+        "Innate"                        "1"    // 🔧 先天技能标记
+        
+        "AbilityValues"
+        {
+            "duration"
+            {
+                "value"                     "6"
+            }
+            "base_multiplier"
+            {
+                "value"                     "0.7"
+            }
+            "damage_multiplier"
+            {
+                "value"                     "0.6"
+            }
+            "tick_rate"
+            {
+                "value"                     "0.5"
+            }
+            "pool_drain_rate"
+            {
+                "value"                     "0.2"
+            }
+        }
+        
+        "AbilitySpecial"
+        {
+            "01"
+            {
+                "var_type"              "FIELD_FLOAT"
+                "duration"              "6.0"
+            }
+            "02"
+            {
+                "var_type"              "FIELD_FLOAT"
+                "base_multiplier"       "0.7"
+            }
+            "03"
+            {
+                "var_type"              "FIELD_FLOAT"
+                "damage_multiplier"     "0.6"
+            }
+            "04"
+            {
+                "var_type"              "FIELD_FLOAT"
+                "tick_rate"             "0.5"
+            }
+            "05"
+            {
+                "var_type"              "FIELD_FLOAT"
+                "pool_drain_rate"       "0.2"
+            }
+        }
+        
+        "AbilityDescription"            "重伤：攻击暴击时，100%% 触发重伤效果。目标每 0.5 秒受到伤害池 20%% 的物理伤害，持续 6 秒。伤害池越大，每秒伤害越高！"
+    }
+  "warrior_thunder_strike"
+    {
+        "BaseClass"                     "ability_lua"
+        "ScriptFile"                    "examples/abilities/warrior_thunder_strike"
+        "AbilityTextureName"            "centaur_hoof_stomp"
+        
+        // 🔧 改为无目标 AOE
+        "AbilityBehavior"               "DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_AOE"
+        "AbilityUnitTargetTeam"         "DOTA_UNIT_TARGET_TEAM_ENEMY"
+        "AbilityUnitTargetType"         "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC"
+        "AbilityUnitDamageType"         "DAMAGE_TYPE_MAGICAL"
+        "SpellImmunityType"             "SPELL_IMMUNITY_ENEMIES_NO"
+        
+        "AbilityCastAnimation"          "ACT_DOTA_CAST_ABILITY_3"
+        "AbilityCastPoint"              "0.4"
+        "AbilityCastRange"              "0"    // 🔧 自身周围，无施法距离
+        
+        "MaxLevel"                      "1"
+        "AbilityCooldown"               "10.0"
+        "AbilityManaCost"               "0"
+        
+        "AbilityValues"
+        {
+            "radius"
+            {
+                "value"                     "600"
+                "affected_by_aoe_increase"  "1"
+            }
+            "damage_pct"
+            {
+                "value"                     "1.5"    // 🔧 提高到 150%
+            }
+        }
+        
+        "AbilitySpecial"
+        {
+            "01"
+            {
+                "var_type"              "FIELD_INTEGER"
+                "radius"                "300"
+            }
+            "02"
+            {
+                "var_type"              "FIELD_FLOAT"
+                "damage_pct"            "1.5"
+            }
+        }
+        
+        "AbilityDescription"            "[E] 雷霆一击：重击地面，对自身周围 300 范围内所有敌人造成 150%% 攻击力的魔法伤害，并附加重伤效果。冷却 10 秒。"
+    }
+    "warrior_execute"
+{
+    "BaseClass"                     "ability_lua"
+    "ScriptFile"                    "examples/abilities/warrior_execute"
+    "AbilityTextureName"            "axe_culling_blade"
+    
+    "AbilityBehavior"               "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET"
+    "AbilityUnitTargetTeam"         "DOTA_UNIT_TARGET_TEAM_ENEMY"
+    "AbilityUnitTargetType"         "DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC"
+    "AbilityUnitDamageType"         "DAMAGE_TYPE_PHYSICAL"
+    "SpellImmunityType"             "SPELL_IMMUNITY_ENEMIES_YES"
+    "AbilityType"                   "DOTA_ABILITY_TYPE_ULTIMATE"
+    
+    "AbilityCastAnimation"          "ACT_DOTA_CAST_ABILITY_4"
+    "AbilityCastPoint"              "0.3"
+    "AbilityCastRange"              "300"
+    
+    "MaxLevel"                      "3"
+    "RequiredLevel"                 "6"
+    "LevelsBetweenUpgrades"         "6"
+    
+    "AbilityCooldown"               "10.0"
+    "AbilityManaCost"               "0"
+       "AbilitySpecial" {
+        "rage_cost" "25" // 普通模式消耗25怒气
+        // 其他配置（伤害系数等）
+    }
+}
+
+"warrior_sudden_death"
+{
+    "BaseClass"                     "ability_lua"
+    "ScriptFile"                    "examples/abilities/warrior_sudden_death"
+    "AbilityTextureName"            "skeleton_king_reincarnation"
+    "AbilityBehavior"               "DOTA_ABILITY_BEHAVIOR_PASSIVE"
+    "MaxLevel"                      "1"
+}
 }

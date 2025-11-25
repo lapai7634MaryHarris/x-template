@@ -1,2 +1,5 @@
-﻿Tokens,English,SChinese
-addon_game_name,YOUR ADDON NAME,你的游戏名
+﻿Language,English,SChinese
+addon_game_name,Dungeon Adventure,副本冒险
+dungeon_start,Dungeon Started! Defeat 3 monsters!,副本开始！击败3个怪物！
+dungeon_complete,🎉 Dungeon Complete!,🎉 副本完成！
+dungeon_monster_remaining,Monsters remaining: {s:count},剩余怪物: {s:count}
