@@ -11,6 +11,7 @@ import './examples/abilities/warrior_deep_wound';
 import './examples/abilities/axe_giant_strike';
 import { ExternalRewardItem } from "../src/dungeon/external_reward_pool";
 import { SimpleDungeon } from "./dungeon/simple_dungeon";
+import { EquipmentVaultSystem } from './systems/equipment_vault_system';
 
 declare global {
     interface CDOTAGameRules {

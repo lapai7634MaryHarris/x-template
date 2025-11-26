@@ -1,17 +1,10 @@
 import { FC, useEffect, useState } from "react";
 import React from "react";
+import { ExternalRewardItem } from "./../../../../game/scripts/src/dungeon/external_reward_pool";
 
-// 奖励数据类型对应 ExternalRewardItem
-interface Reward {
-    name: string;
-    type: string;
-    icon: string;
-    attribute: string;
-    value: number;
-}
 
-export const RewardSelection: FC<{ visible: boolean; onSelect: (reward: Reward) => void }> = ({ visible, onSelect }) => {
-    const [rewards, setRewards] = useState<Reward[]>([]);
+export const RewardSelection: FC<{ visible: boolean; onSelect: (reward: ExternalRewardItem ) => void }> = ({ visible, onSelect }) => {
+    const [rewards, setRewards] = useState<ExternalRewardItem []>([]);
 
     // 监听奖励数据更新事件
     useEffect(() => {

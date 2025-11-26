@@ -205,7 +205,7 @@ export class SimpleDungeon {
             }
             
             // ⭐ 应用难度系数
-            heroBoss.SetBaseStrength(Math.floor(5000 * multiplier));
+            heroBoss.SetBaseStrength(Math.floor(500 * multiplier));
             heroBoss.SetBaseAgility(Math.floor(50 * multiplier));
             heroBoss.SetBaseIntellect(Math.floor(50 * multiplier));
             
@@ -371,9 +371,13 @@ private OnEntityKilled(event: EntityKilledEvent): void {
         this.monsters.splice(index, 1);
         print(`[SimpleDungeon] Monster killed! Remaining: ${this.monsters.length}`);
 
-        if (this.currentRoom === 3 && this.monsters.length === 0) {
-            // Boss 击败后触发奖励选择
-            this.TriggerRewardSelection();
+        if (this.monsters.length === 0) {
+            print(`[SimpleDungeon] 所有怪物已被击杀，房间 ${this.currentRoom} 清空`);
+            this.OnRoomCleared();
+
+            if (this.currentRoom === 3) {
+                this.TriggerRewardSelection();
+            }
         }
     }
 }

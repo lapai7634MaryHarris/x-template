@@ -362,39 +362,92 @@ if (selectedDungeon === "A") {
     );
 };
 
+
+
 const Root: FC = () => {
-    const [menuVisible, setMenuVisible] = useState(false);
-     const [rewardVisible, setRewardVisible] = useState(false);
+    const [menuVisible, setMenuVisible] = useState(false);            // 副本菜单显示状态
+    const [rewardVisible, setRewardVisible] = useState(false);        // 奖励选择显示状态
 
-   const onSelectReward = (reward: ExternalRewardItem) => {
-    $.Msg(`[Root] Selected reward: ${reward.name}`);
+    // 奖励选择回调
+    const onSelectReward = (reward: ExternalRewardItem) => {
+        $.Msg(`[Root] Selected reward: ${reward.name}`);
 
-    GameEvents.SendCustomGameEventToServer("reward_selected", {
-        PlayerID: Players.GetLocalPlayer(),
-        reward: reward
-    });
+        GameEvents.SendCustomGameEventToServer("reward_selected", {
+            PlayerID: Players.GetLocalPlayer(),
+            reward: reward
+        });
 
-    setRewardVisible(false); // 关闭奖励界面
-};
+        setRewardVisible(false); // 关闭奖励界面
+    };
 
+    // QRCODE相关
+    const url = `https://github.com/XavierCHN/x-template`;
+    const go = React.useCallback(() => {
+        const wait = new WaitAction(0.5);
+        const showTextTooltip = new DispatchEventAction(`DOTAShowTextTooltip`, $(`#QRCode`), `正在打开链接`);
+        const hideTextTooltip = new DispatchEventAction(`DOTAHideTextTooltip`, $(`#QRCode`));
+        const playSound = new FunctionAction(() => PlayUISoundScript('DotaSOS.TestBeep'));
+        const gotoUrl = new DispatchEventAction(`ExternalBrowserGoToURL`, url);
+        RunSequentialActions([showTextTooltip, wait, hideTextTooltip, wait, playSound, gotoUrl]);
+    }, [url]);
+    const dPressed = useKeyPressed(`D`);
+
+    // 事件监听
     useEffect(() => {
-        const listenerId = GameEvents.Subscribe("show_reward_selection", () => {
+        $.Msg('[Root] 注册事件监听器');
+        
+        // 副本菜单弹出
+        const listenerMenu = GameEvents.Subscribe('show_dungeon_menu', () => {
+            $.Msg('[Root] 收到 show_dungeon_menu 事件');
+            setMenuVisible(true);
+        });
+
+        // 奖励选择弹出
+        const listenerReward = GameEvents.Subscribe("show_reward_selection", () => {
+            $.Msg('[Root] 收到 show_reward_selection 事件');
             setRewardVisible(true);
         });
 
         return () => {
-            GameEvents.Unsubscribe(listenerId);
+            GameEvents.Unsubscribe(listenerMenu);
+            GameEvents.Unsubscribe(listenerReward);
         };
     }, []);
 
+    $.Msg(`[Root] 渲染，menuVisible = ${menuVisible}, rewardVisible = ${rewardVisible}`);
+
     return (
         <>
-            {/* 奖励选择界面 */}
+            <RageBar />
+
+            {/* 副本菜单弹窗 */}
+            <DungeonMenu visible={menuVisible} onClose={() => {
+                $.Msg('[Root] 关闭副本菜单');
+                setMenuVisible(false);
+            }} />
+
+            {/* 奖励选择弹窗 */}
             <RewardSelection visible={rewardVisible} onSelect={onSelectReward} />
+
+            {/* QRCODE 功能元素 */}
+            <PanoramaQRCode
+                style={{ preTransformScale2d: dPressed ? `1.5` : `1` }}
+                id="QRCode"
+                onactivate={go}
+                value={url}
+                size={128}
+                excavate={8}
+                className={`QRCode`}
+            >
+                <Image
+                    src="file://{images}/logos/dota_logo_bright.psd"
+                    style={{ width: `32px`, height: `32px`, horizontalAlign: `center`, verticalAlign: `center` }}
+                />
+            </PanoramaQRCode>
         </>
     );
 };
 
-$. Msg('[HUD] 开始渲染 Root 组件');
-render(<Root />, $. GetContextPanel());
-$. Msg('[HUD] Root 组件渲染完成');
+$.Msg('[HUD] 开始渲染 Root 组件');
+render(<Root />, $.GetContextPanel());
+$.Msg('[HUD] Root 组件渲染完成');
