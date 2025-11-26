@@ -4,5 +4,7 @@
     [
         "hero_list",
         "game_timer",
+          "player_vaults",
     ]
+    
 }

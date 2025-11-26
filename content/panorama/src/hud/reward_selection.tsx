@@ -2,53 +2,134 @@ import { FC, useEffect, useState } from "react";
 import React from "react";
 import { ExternalRewardItem } from "./../../../../game/scripts/src/dungeon/external_reward_pool";
 
+export const RewardSelection: FC<{ visible: boolean; onSelect: (reward: ExternalRewardItem) => void }> = ({ visible, onSelect }) => {
+    const [rewards, setRewards] = useState<ExternalRewardItem[]>([]);
 
-export const RewardSelection: FC<{ visible: boolean; onSelect: (reward: ExternalRewardItem ) => void }> = ({ visible, onSelect }) => {
-    const [rewards, setRewards] = useState<ExternalRewardItem []>([]);
-
-    // 监听奖励数据更新事件
     useEffect(() => {
-        if (visible) {
-            const listenerId = GameEvents.Subscribe("show_reward_selection", (event: any) => {
-                setRewards(event.rewards || []);
-            });
+        console.log("[RewardSelection] 组件挂载");
+        
+        const listenerId = GameEvents.Subscribe("show_reward_selection", (event: any) => {
+            console.log("[RewardSelection] 收到事件", event);
+            
+            if (event && event.rewards) {
+                // ⭐ 将对象转换为数组
+                let rewardsArray: ExternalRewardItem[];
+                
+                if (Array.isArray(event.rewards)) {
+                    rewardsArray = event.rewards;
+                } else {
+                    rewardsArray = Object.values(event.rewards);
+                }
+                
+                console.log(`[RewardSelection] 设置 ${rewardsArray.length} 件奖励`);
+                setRewards(rewardsArray);
+            }
+        });
 
-            return () => {
-                GameEvents.Unsubscribe(listenerId);
-            };
-        }
-    }, [visible]);
+        return () => {
+            GameEvents.Unsubscribe(listenerId);
+        };
+    }, []);
 
-    if (!visible) return null;
+    console.log(`[RewardSelection] visible=${visible}, rewards=${rewards.length}`);
+
+    if (!visible || rewards.length === 0) {
+        return null;
+    }
 
     return (
         <Panel style={{
-            width: "800px",
-            height: "300px",
-            backgroundColor: "#000000cc",
-            border: "3px solid #ffd700",
-            flowChildren: "right center",
+            width: "100%",
+            height: "100%",
             horizontalAlign: "center",
             verticalAlign: "center",
+            backgroundColor: "#000000dd",
+            zIndex: 10001,
         }}>
-            {rewards.map((reward, index) => (
-                <Panel
-                    key={index}
-                    style={{
-                        width: "220px",
-                        height: "280px",
-                        margin: "10px",
-                        backgroundColor: "#1a1a1a",
-                        border: "2px solid #ffffff",
-                        flowChildren: "down center",
-                    }}
-                    onactivate={() => onSelect(reward)}
-                >
-                    <Image src={reward.icon} style={{ width: "200px", height: "200px" }} />
-                    <Label text={reward.name} style={{ fontSize: "20px", color: "#ffd700", textAlign: "center" }} />
-                    <Label text={`${reward.attribute}+${reward.value}`} style={{ fontSize: "16px", color: "#00ff00", textAlign: "center" }} />
+            <Panel style={{
+                width: "800px",
+                height: "500px",
+                backgroundColor: "#1a1a1aee",
+                border: "3px solid #ffd700",
+                flowChildren: "down",
+                padding: "20px",
+            }}>
+                <Label 
+                    text={`选择一件装备 (共${rewards.length}件)`}
+                    style={{ 
+                        fontSize: "32px", 
+                        color: "#ffd700", 
+                        textAlign: "center",
+                        marginBottom: "20px"
+                    }} 
+                />
+                
+                <Panel style={{ flowChildren: "down" }}>
+                    {rewards.map((reward, index) => (
+                        <Panel
+                            key={index}
+                            style={{
+                                height: "80px",
+                                backgroundColor: "#2a2a2a",
+                                border: "2px solid #ffaa00",
+                                marginBottom: "10px",
+                                padding: "15px",
+                                flowChildren: "right",
+                            }}
+                            onactivate={() => {
+                                console.log(`[RewardSelection] 选择: ${reward.name}`);
+                                
+                                // 发送到服务器
+                                (GameEvents as any).SendCustomGameEventToServer("reward_selected", {
+                                    PlayerID: Players.GetLocalPlayer(),
+                                    reward: reward,
+                                    rewardIndex: index
+                                });
+                                
+                                // 调用回调
+                                onSelect(reward);
+                                
+                                // 清空
+                                setRewards([]);
+                            }}
+                            onmouseover={(panel) => {
+                                panel.style.backgroundColor = "#3a3a3a";
+                                panel.style.border = "3px solid #ffd700";
+                            }}
+                            onmouseout={(panel) => {
+                                panel. style.backgroundColor = "#2a2a2a";
+                                panel.style.border = "2px solid #ffaa00";
+                            }}
+                        >
+                            <Label 
+                                text={`${index + 1}. `}
+                                style={{ 
+                                    fontSize: "32px", 
+                                    color: "#ffd700",
+                                    width: "50px"
+                                }}
+                            />
+                            <Panel style={{ flowChildren: "down" }}>
+                                <Label 
+                                    text={reward.name}
+                                    style={{ 
+                                        fontSize: "24px", 
+                                        color: "#ffffff",
+                                        fontWeight: "bold"
+                                    }}
+                                />
+                                <Label 
+                                    text={`${reward.type} - ${reward.attribute} +${reward.value}`}
+                                    style={{ 
+                                        fontSize: "18px", 
+                                        color: "#00ff00"
+                                    }}
+                                />
+                            </Panel>
+                        </Panel>
+                    ))}
                 </Panel>
-            ))}
+            </Panel>
         </Panel>
     );
 };

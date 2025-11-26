@@ -14,15 +14,34 @@ declare interface CustomGameEventDeclarations {
     };*/
 
     // 客户端显示奖励选择事件
+      player_select_reward: {
+        PlayerID: PlayerID;
+        
+        rewardIndex: number;
+    };
+        reward_selected: {
+        PlayerID: PlayerID;
+        reward:any /*{
+            name: string;
+            type: string;
+            icon: string;
+            attribute: string;
+            value: number;
+        }*/;
+        rewardIndex: number;
+    };
+    // 显示奖励选择界面事件
     show_reward_selection: {
-        rewards: ExternalRewardItem[]; // 服务端发送的奖励数组
+        rewards: Array<{
+            name: string;
+            type: string;
+            icon: string;
+            attribute: string;
+            value: number;
+        }>;
     };
 
-    // 客户端提交玩家选择的奖励
-    reward_selected: {
-        PlayerID: PlayerID; // 玩家 ID
-        reward: ExternalRewardItem; // 玩家选择的某个奖励
-    };
+
 
     // 示例：玩家选择副本的事件
     select_dungeon: {

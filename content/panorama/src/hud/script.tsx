@@ -1,6 +1,7 @@
 import 'panorama-polyfill-x/lib/console';
 import 'panorama-polyfill-x/lib/timers';
 import { ExternalRewardItem } from "./../../../../game/scripts/src/dungeon/external_reward_pool";
+import { VaultUI } from './vault_ui';
 
 import '../utils/hide-default-hud';
 import { RewardSelection } from "./reward_selection";
@@ -367,18 +368,12 @@ if (selectedDungeon === "A") {
 const Root: FC = () => {
     const [menuVisible, setMenuVisible] = useState(false);            // 副本菜单显示状态
     const [rewardVisible, setRewardVisible] = useState(false);        // 奖励选择显示状态
-
+    const [vaultVisible, setVaultVisible] = useState(false);  // ⭐ 新增：装备仓库显示状态
     // 奖励选择回调
-    const onSelectReward = (reward: ExternalRewardItem) => {
-        $.Msg(`[Root] Selected reward: ${reward.name}`);
-
-        GameEvents.SendCustomGameEventToServer("reward_selected", {
-            PlayerID: Players.GetLocalPlayer(),
-            reward: reward
-        });
-
-        setRewardVisible(false); // 关闭奖励界面
-    };
+const onSelectReward = (reward: ExternalRewardItem) => {
+    $.Msg(`[Root] Selected reward: ${reward.name}`);
+    setRewardVisible(false); // 只关闭界面
+};
 
     // QRCODE相关
     const url = `https://github.com/XavierCHN/x-template`;
@@ -407,10 +402,16 @@ const Root: FC = () => {
             $.Msg('[Root] 收到 show_reward_selection 事件');
             setRewardVisible(true);
         });
+              // ⭐ 新增：仓库界面
+        const listenerVault = GameEvents.Subscribe('show_vault_ui', () => {
+            $.Msg('[Root] 收到 show_vault_ui 事件');
+            setVaultVisible(true);
+        });
 
         return () => {
             GameEvents.Unsubscribe(listenerMenu);
             GameEvents.Unsubscribe(listenerReward);
+            GameEvents.Unsubscribe(listenerVault);
         };
     }, []);
 
@@ -428,7 +429,8 @@ const Root: FC = () => {
 
             {/* 奖励选择弹窗 */}
             <RewardSelection visible={rewardVisible} onSelect={onSelectReward} />
-
+             {/* ⭐ 新增：装备仓库弹窗 */}
+            <VaultUI visible={vaultVisible} onClose={() => setVaultVisible(false)} /> 
             {/* QRCODE 功能元素 */}
             <PanoramaQRCode
                 style={{ preTransformScale2d: dPressed ? `1.5` : `1` }}

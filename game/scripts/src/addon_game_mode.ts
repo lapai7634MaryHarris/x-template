@@ -135,7 +135,7 @@ function ListenToDungeonSelection() {
         }
     });
     // 监听奖励选择事件
-     CustomGameEventManager.RegisterListener("reward_selected", (eventId, data) => {
+    /* CustomGameEventManager.RegisterListener("reward_selected", (eventId, data) => {
         const playerId = data.PlayerID as PlayerID;
         const reward = data.reward as ExternalRewardItem;
 
@@ -143,7 +143,7 @@ function ListenToDungeonSelection() {
 
         // 保存到装备库
         EquipmentVaultSystem.SaveToVault(playerId, reward);
-    });
+    });*/
 }
 
 Object.assign(getfenv(), {
@@ -171,37 +171,51 @@ Object.assign(getfenv(), {
             print(`[GameMode] 玩家${playerId}连接，加载装备仓库...`);
             
             // 加载玩家的装备仓库
-            EquipmentVaultSystem.LoadFromPersistentStorage(playerId);
+           EquipmentVaultSystem.InitializePlayer(playerId);
         }, undefined);
         
-        // ⭐ 注册装备命令（用于测试）
-        Convars.RegisterCommand("equip", (itemIndex: string) => {
-            const player = Convars.GetCommandClient();
-            if (!player) return;
-            
-            const playerId = player.GetPlayerID();
-            const index = parseInt(itemIndex);
-            
-            if (EquipmentVaultSystem.EquipItem(playerId, index)) {
-                print(`[GameMode] ✓ 玩家${playerId}装备了索引${index}的装备`);
-            } else {
-                print(`[GameMode] ❌ 装备失败`);
-            }
-        }, "装备仓库中的装备 (使用索引)", 0);
+  // ⭐ 注册装备命令（用于测试）
+Convars.RegisterCommand("equip", (itemIndex: string) => {
+    const player = Convars.GetCommandClient();
+    
+    // ⭐ 修复：如果是单人模式，使用玩家 0
+    let playerId: PlayerID;
+    if (player) {
+        playerId = player.GetPlayerID();
+    } else {
+        playerId = 0 as PlayerID;  // 默认使用玩家 0
+        print("[GameMode] ⚠️ 单人模式，默认使用玩家 0");
+    }
+    
+    const index = parseInt(itemIndex);
+    
+    if (EquipmentVaultSystem. EquipItem(playerId, index)) {
+        print(`[GameMode] ✓ 玩家${playerId}装备了索引${index}的装备`);
+    } else {
+        print(`[GameMode] ❌ 装备失败`);
+    }
+}, "装备仓库中的装备 (使用索引)", 0);
         
-        // ⭐ 查看仓库命令（用于测试）
-        Convars.RegisterCommand("vault", () => {
-            const player = Convars.GetCommandClient();
-            if (!player) return;
-            
-            const playerId = player.GetPlayerID();
-            const vault = EquipmentVaultSystem.GetVault(playerId);
-            
-            print(`[GameMode] 玩家${playerId}的仓库 (${vault.length}件装备):`);
-            vault.forEach((item, index) => {
-                print(`  [${index}] ${item.name} - ${item.type} (${item.attribute} +${item.value})`);
-            });
-        }, "查看装备仓库", 0);
+  // ⭐ 查看仓库命令（用于测试）
+Convars.RegisterCommand("vault", () => {
+    const player = Convars.GetCommandClient();
+    
+    // ⭐ 修复：如果是单人模式，使用玩家 0
+    let playerId: PlayerID;
+    if (player) {
+        playerId = player.GetPlayerID();
+    } else {
+        playerId = 0 as PlayerID;  // 默认使用玩家 0
+        print("[GameMode] ⚠️ 单人模式，默认使用玩家 0");
+    }
+    
+    const vault = EquipmentVaultSystem.GetVault(playerId);
+    
+    print(`[GameMode] 玩家${playerId}的仓库 (${vault.length}件装备):`);
+    vault. forEach((item, index) => {
+        print(`  [${index}] ${item. name} - ${item.type} (${item.attribute} +${item.value})`);
+    });
+}, "查看装备仓库", 0);
 
         print("[GameMode] All modules loaded!");
         print("=".repeat(50));
