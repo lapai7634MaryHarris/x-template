@@ -369,15 +369,23 @@ private OnEntityKilled(event: EntityKilledEvent): void {
     const index = this.monsters.indexOf(killedUnit as CDOTA_BaseNPC);
     if (index !== -1) {
         this.monsters.splice(index, 1);
-        print(`[SimpleDungeon] Monster killed! Remaining: ${this.monsters.length}`);
+        print(`[SimpleDungeon] Monster killed! Remaining: ${this. monsters.length}`);
 
         if (this.monsters.length === 0) {
-            print(`[SimpleDungeon] 所有怪物已被击杀，房间 ${this.currentRoom} 清空`);
-            this.OnRoomCleared();
-
-            if (this.currentRoom === 3) {
+            // ⭐ Boss 房间特殊处理
+            if (this.currentRoom === 3 && this.playerId !== undefined) {
+                // 1. 触发 Boss 掉落
+                LootSystem.DropBossLoot(
+                    killedUnit as CDOTA_BaseNPC, 
+                    this.currentDifficulty, 
+                    this.playerId
+                );
+                
+                // 2. 触发奖励选择界面
                 this.TriggerRewardSelection();
             }
+            
+            this.OnRoomCleared();
         }
     }
 }
