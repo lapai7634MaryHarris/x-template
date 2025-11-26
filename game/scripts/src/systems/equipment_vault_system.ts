@@ -1,4 +1,4 @@
-import { ExternalRewardItem } from "../dungeon/external_reward_pool";
+import { ExternalRewardItem, EquipmentAttribute } from "../dungeon/external_reward_pool";
 
 type PlayerID = number;
 
@@ -50,14 +50,22 @@ export class EquipmentVaultSystem {
     
     // ⭐ 新增：应用装备属性到英雄
     private static ApplyItemStats(hero: CDOTA_BaseNPC_Hero, item: ExternalRewardItem): void {
-        if (item.attribute === "力量") {
-            hero.SetBaseStrength(hero.GetBaseStrength() + item.value);
-        } else if (item.attribute === "敏捷") {
-            hero.SetBaseAgility(hero.GetBaseAgility() + item.value);
-        } else if (item.attribute === "智力") {
-            hero.SetBaseIntellect(hero.GetBaseIntellect() + item.value);
-        } else if (item.attribute === "护甲") {
-            hero.SetPhysicalArmorBaseValue(hero.GetPhysicalArmorBaseValue() + item.value);
+        switch (item.attribute) {
+            case EquipmentAttribute.STRENGTH:
+                hero.SetBaseStrength(hero.GetBaseStrength() + item.value);
+                break;
+            case EquipmentAttribute.AGILITY:
+                hero.SetBaseAgility(hero.GetBaseAgility() + item.value);
+                break;
+            case EquipmentAttribute.INTELLIGENCE:
+                hero.SetBaseIntellect(hero.GetBaseIntellect() + item.value);
+                break;
+            case EquipmentAttribute.ARMOR:
+                hero.SetPhysicalArmorBaseValue(hero.GetPhysicalArmorBaseValue() + item.value);
+                break;
+            default:
+                print(`[EquipmentVaultSystem] ⚠️ 未知属性类型：${item.attribute}`);
+                return;
         }
         
         print(`[EquipmentVaultSystem] 应用属性：${item.name} - ${item.attribute} +${item.value}`);

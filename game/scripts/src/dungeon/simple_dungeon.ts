@@ -375,9 +375,21 @@ private RegisterRewardSelectionListener(): void {
         
         print(`[SimpleDungeon] 玩家${playerId}选择了奖励索引：${rewardIndex}`);
         
+        // ⭐ 验证是否为当前副本的玩家
+        if (playerId !== this.playerId) {
+            print(`[SimpleDungeon] ❌ 玩家${playerId}不是当前副本的玩家（应为${this.playerId}）`);
+            return;
+        }
+        
         // 验证索引有效性
         if (rewardIndex < 0 || rewardIndex >= this.currentRewards.length) {
             print(`[SimpleDungeon] ❌ 无效的奖励索引：${rewardIndex}`);
+            return;
+        }
+        
+        // 验证奖励是否已被选择
+        if (this.currentRewards.length === 0) {
+            print(`[SimpleDungeon] ❌ 奖励已被选择或不存在`);
             return;
         }
         
@@ -393,7 +405,7 @@ private RegisterRewardSelectionListener(): void {
             0
         );
         
-        // 清空缓存
+        // 清空缓存（单人副本，选择后立即清空）
         this.currentRewards = [];
     });
 }
