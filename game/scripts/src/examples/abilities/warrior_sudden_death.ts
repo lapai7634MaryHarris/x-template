@@ -24,25 +24,25 @@ export class modifier_sudden_death extends BaseModifier {
     OnAttackLanded(event: ModifierAttackEvent): void {
         if (!IsServer()) return;
         
-        const attacker = event.attacker;
+        const attacker = event.attacker;  
         const parent = this.GetParent();
         
-        if (attacker !== parent) return;
+        if (attacker !== parent) return;// 只处理拥有者的攻击事件
         
-        if (RandomInt(1, 100) <= this.sudden_death_chance) {
-            print("[modifier_sudden_death] ⚡ Sudden Death triggered!");
+        if (RandomInt(1, 100) <= this.sudden_death_chance) {// 触发10%几率
+            print("[modifier_sudden_death] ⚡ Sudden Death triggered!");;
             
             parent.AddNewModifier(
                 parent,
                 this.GetAbility(),
                 "modifier_sudden_death_active",
                 { duration: -1 }
-            );
+            );// 永久效果，直到手动移除
             
             const executeAbility = parent.FindAbilityByName("warrior_execute");
             if (executeAbility && !executeAbility.IsCooldownReady()) {
                 executeAbility.EndCooldown();
-            }
+            }// 立即刷新技能冷却
             
             const particle = ParticleManager.CreateParticle(
                 "particles/units/heroes/hero_juggernaut/juggernaut_crit_blur.vpcf",

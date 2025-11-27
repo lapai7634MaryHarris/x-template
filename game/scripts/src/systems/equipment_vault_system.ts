@@ -30,37 +30,64 @@ export class EquipmentVaultSystem {
     private static playerModifiers: { [playerId: number]: CDOTA_Buff } = {};
 
     // 初始化玩家仓库和装备
-    static InitializePlayer(playerId: PlayerID): void {
-        print(`[EquipmentVaultSystem] 初始化玩家${playerId}的仓库和装备`);
-        
-        // 初始化装备槽
-        if (!this.playerEquipment[playerId]) {
-            this.playerEquipment[playerId] = {
-                helmet: null,
-                necklace: null,
-                ring: null,
-                trinket: null,
-                weapon: null,
-                armor: null,
-                belt: null,
-                boots: null,
-            };
-        }
-        
-        // 从持久化存储加载
-        this.LoadFromPersistentStorage(playerId);
-        
-        // 创建装备系统 Modifier
+// 初始化玩家仓库和装备
+static InitializePlayer(playerId: PlayerID): void {
+    print(`[EquipmentVaultSystem] 初始化玩家${playerId}的仓库和装备`);
+    
+    // 初始化装备槽
+    if (!this.playerEquipment[playerId]) {
+        this.playerEquipment[playerId] = {
+            helmet: null,
+            necklace: null,
+            ring: null,
+            trinket: null,
+            weapon: null,
+            armor: null,
+            belt: null,
+            boots: null,
+        };
+    }
+    
+    // 从持久化存储加载
+    this.LoadFromPersistentStorage(playerId);
+    
+    // 创建装备系统 Modifier
+    if (IsServer()) {
         const hero = PlayerResource.GetSelectedHeroEntity(playerId);
         if (hero) {
-            const modifier = hero. AddNewModifier(hero, undefined, "modifier_equipment_system", {});
-            this.playerModifiers[playerId] = modifier;
-            print(`[EquipmentVaultSystem] 为玩家${playerId}创建装备系统 Modifier`);
+            // 检查 Modifier 是否已存在
+            let modifier = this.playerModifiers[playerId];
             
-            // 刷新装备属性
-            this.RefreshEquipmentStats(playerId);
+            // 如果不存在或已失效，尝试创建新的
+            if (!modifier || modifier.IsNull()) {
+                try {
+                    modifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
+                    
+                    if (modifier && ! modifier.IsNull()) {
+                        this.playerModifiers[playerId] = modifier;
+                        print(`[EquipmentVaultSystem] ✓ 为玩家${playerId}创建装备系统 Modifier`);
+                        
+                        // 刷新装备属性
+                        this.RefreshEquipmentStats(playerId);
+                    } else {
+                        print(`[EquipmentVaultSystem] ❌ 创建 Modifier 失败`);
+                        print(`[EquipmentVaultSystem] 提示: 需要确保 modifier_equipment_system. lua 已被加载`);
+                        print(`[EquipmentVaultSystem] 解决方法: 在 addon_game_mode.lua 中添加 require('modifiers/modifier_equipment_system')`);
+                    }
+                } catch (error) {
+                    print(`[EquipmentVaultSystem] ❌ 创建 Modifier 时发生异常:`);
+                    print(error);
+                }
+            } else {
+                print(`[EquipmentVaultSystem] ✓ 玩家${playerId}的 Modifier 已存在，刷新属性`);
+                // Modifier 已存在，直接刷新
+                this.RefreshEquipmentStats(playerId);
+            }
+        } else {
+            print(`[EquipmentVaultSystem] ⚠️ 找不到玩家${playerId}的英雄实体`);
         }
     }
+}
 
     // 保存装备到仓库
     static SaveToVault(playerId: PlayerID, item: ExternalRewardItem): void {

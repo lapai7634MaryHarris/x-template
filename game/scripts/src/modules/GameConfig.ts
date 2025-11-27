@@ -39,7 +39,7 @@ export class GameConfig {
         game.SetDeathOverlayDisabled(true); // 是否禁用死亡遮罩（灰色的遮罩）
 
         // 设置自定义的队伍人数上限
-        GameRules.SetCustomGameTeamMaxPlayers(DotaTeam.GOODGUYS, 4);
+        GameRules.SetCustomGameTeamMaxPlayers(DotaTeam.GOODGUYS,5);
         GameRules.SetCustomGameTeamMaxPlayers(DotaTeam.BADGUYS, 0);
         // for (let team = DotaTeam.CUSTOM_1; team <= DotaTeam.CUSTOM_8; ++team) {
         //     GameRules.SetCustomGameTeamMaxPlayers(team, 1);
