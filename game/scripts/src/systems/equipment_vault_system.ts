@@ -188,84 +188,73 @@ export class EquipmentVaultSystem {
     }
 
     // ⭐ 刷新装备属性（只有一个版本）
-    private static RefreshEquipmentStats(playerId: PlayerID): void {
-        const equipment = this.GetEquipment(playerId);
-        const modifier = this.playerModifiers[playerId];
-        
-        if (! modifier || modifier.IsNull()) {
-            print(`[EquipmentVaultSystem] ❌ 找不到装备系统 Modifier`);
-            return;
-        }
-        
-        const totalStats: { [key: string]: number } = {
-            strength: 0,
-            agility: 0,
-            intelligence: 0,
-            armor: 0,
-            health: 0,
-            mana: 0,
-            attack_damage: 0,
-            attack_speed: 0,
-            move_speed: 0,
-            magic_resistance: 0,
-        };
-        
-        print(`[EquipmentVaultSystem] 开始计算装备属性总和...`);
-        
-        for (const slot in equipment) {
-            const item = equipment[slot];
-            if (item) {
-                print(`[EquipmentVaultSystem]   槽位 ${slot}: ${item.name}`);
-                item.stats.forEach(stat => {
-                    const key = this.AttributeToKey(stat. attribute);
-                    if (key) {
-                        totalStats[key] = (totalStats[key] || 0) + stat.value;
-                        print(`[EquipmentVaultSystem]     +${stat.value} ${stat.attribute} (${key})`);
-                    }
-                });
-            }
-        }
-        
-        const hero = modifier.GetParent() as CDOTA_BaseNPC_Hero;
-        
-        // ⭐ 重置护甲为基础值 + 装备护甲
-        const baseArmor = this.playerBaseArmor[playerId] || 0;
-        const newArmor = baseArmor + totalStats.armor;
-        hero.SetPhysicalArmorBaseValue(newArmor);
-        print(`[EquipmentVaultSystem] 🛡️ 设置护甲: 基础(${baseArmor}) + 装备(${totalStats.armor}) = ${newArmor}`);
-        
-        modifier. Destroy();
-        
-        print(`[EquipmentVaultSystem] ⭐ 重新创建 Modifier 以刷新属性`);
-        
-        const newModifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
-        
-        if (newModifier && ! newModifier.IsNull()) {
-            this.playerModifiers[playerId] = newModifier;
-            
-            // ⭐ 延迟调用 UpdateStats，确保 modifier 完全初始化
-            Timers.CreateTimer(0.03, () => {
-                if (newModifier && !newModifier.IsNull()) {
-                    const updateFn = (newModifier as any).UpdateStats;
-                    if (updateFn) {
-                        updateFn. call(newModifier, totalStats);
-                    } else {
-                        print(`[EquipmentVaultSystem] ⚠️ UpdateStats 方法不存在`);
-                    }
+   private static RefreshEquipmentStats(playerId: PlayerID): void {
+    const equipment = this.GetEquipment(playerId);
+    const modifier = this.playerModifiers[playerId];
+    
+    if (! modifier || modifier.IsNull()) {
+        print(`[EquipmentVaultSystem] ❌ 找不到装备系统 Modifier`);
+        return;
+    }
+    
+    const totalStats: { [key: string]: number } = {
+        strength: 0,
+        agility: 0,
+        intelligence: 0,
+        armor: 0,
+        health: 0,
+        mana: 0,
+        attack_damage: 0,
+        attack_speed: 0,
+        move_speed: 0,
+        magic_resistance: 0,
+    };
+    
+    print(`[EquipmentVaultSystem] 开始计算装备属性总和... `);
+    
+    for (const slot in equipment) {
+        const item = equipment[slot];
+        if (item) {
+            print(`[EquipmentVaultSystem]   槽位 ${slot}: ${item.name}`);
+            item.stats.forEach(stat => {
+                const key = this.AttributeToKey(stat.attribute);
+                if (key) {
+                    totalStats[key] = (totalStats[key] || 0) + stat.value;
+                    print(`[EquipmentVaultSystem]     +${stat.value} ${stat.attribute} (${key})`);
                 }
-                return undefined;
             });
-            
-            print(`[EquipmentVaultSystem] ========== 装备属性总和 ==========`);
-            print(`[EquipmentVaultSystem] 力量: +${totalStats.strength}`);
-            print(`[EquipmentVaultSystem] 敏捷: +${totalStats.agility}`);
-            print(`[EquipmentVaultSystem] 智力: +${totalStats.intelligence}`);
-            print(`[EquipmentVaultSystem] 护甲: +${totalStats.armor}`);
-            print(`[EquipmentVaultSystem] =====================================`);
-        } else {
-            print(`[EquipmentVaultSystem] ❌ 重新创建 Modifier 失败`);
         }
     }
+    
+    const hero = modifier.GetParent() as CDOTA_BaseNPC_Hero;
+    
+    // ⭐ 重置护甲为基础值 + 装备护甲
+    const baseArmor = this.playerBaseArmor[playerId] || 0;
+    const newArmor = baseArmor + totalStats.armor;
+    hero.SetPhysicalArmorBaseValue(newArmor);
+    print(`[EquipmentVaultSystem] 🛡️ 设置护甲: 基础(${baseArmor}) + 装备(${totalStats.armor}) = ${newArmor}`);
+    
+    modifier.Destroy();
+    
+    print(`[EquipmentVaultSystem] ⭐ 重新创建 Modifier 以刷新属性`);
+    
+    // ⭐ 创建新 modifier 时直接传递 stats 参数
+   const newModifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", totalStats as any);
+
+if (newModifier && !newModifier. IsNull()) {
+    this. playerModifiers[playerId] = newModifier;
+    
+    print(`[EquipmentVaultSystem] ========== 装备属性总和 ==========`);
+    print(`[EquipmentVaultSystem] 力量: +${totalStats.strength}`);
+    print(`[EquipmentVaultSystem] 敏捷: +${totalStats.agility}`);
+    print(`[EquipmentVaultSystem] 智力: +${totalStats.intelligence}`);
+    print(`[EquipmentVaultSystem] 护甲: +${totalStats.armor}`);
+    print(`[EquipmentVaultSystem] 攻击力: +${totalStats.attack_damage}`);
+    print(`[EquipmentVaultSystem] =====================================`);
+} else {
+    print(`[EquipmentVaultSystem] ❌ 重新创建 Modifier 失败`);
+}
+}
 
     // 属性名称转换为键名
     private static AttributeToKey(attribute: string): string | null {
