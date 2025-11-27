@@ -1,8 +1,12 @@
-/** @luaTable */
-declare const _G: any;
 import { ExternalRewardItem, ExternalItemType, EquipmentAttribute } from "../dungeon/external_reward_pool";
-
-
+// ⭐ 声明 CustomNetTable 类型
+declare global {
+    interface CustomNetTableDeclarations {
+        equipment_system: {
+            [key: string]: any;
+        };
+    }
+}
 // 装备槽位枚举
 export enum EquipmentSlot {
     HELMET = 'helmet',
@@ -24,7 +28,7 @@ const ITEM_TYPE_TO_SLOT: { [key: string]: EquipmentSlot } = {
     "武器": EquipmentSlot.WEAPON,
     "护甲": EquipmentSlot.ARMOR,
     "腰带": EquipmentSlot.BELT,
-    "鞋子": EquipmentSlot.BOOTS,
+    "鞋子": EquipmentSlot. BOOTS,
 };
 
 export class EquipmentVaultSystem {
@@ -38,7 +42,7 @@ export class EquipmentVaultSystem {
         print(`[EquipmentVaultSystem] 初始化玩家${playerId}的仓库和装备`);
         
         // 初始化装备槽
-        if (! this.playerEquipment[playerId]) {
+        if (!  this.playerEquipment[playerId]) {
             this.playerEquipment[playerId] = {
                 helmet: null,
                 necklace: null,
@@ -66,12 +70,12 @@ export class EquipmentVaultSystem {
                 return;
             }
             
-            print(`[EquipmentVaultSystem] ✓ 找到玩家${playerId}的英雄：${hero. GetUnitName()}`);
+            print(`[EquipmentVaultSystem] ✓ 找到玩家${playerId}的英雄：${hero.GetUnitName()}`);
             
             // ⭐ 记录英雄的原始基础护甲（只记录一次）
             if (this.playerBaseArmor[playerId] === undefined) {
-                this.playerBaseArmor[playerId] = hero.GetPhysicalArmorBaseValue();
-                print(`[EquipmentVaultSystem] 📝 记录基础护甲: ${this. playerBaseArmor[playerId]}`);
+                this. playerBaseArmor[playerId] = hero.GetPhysicalArmorBaseValue();
+                print(`[EquipmentVaultSystem] 📝 记录基础护甲: ${this.playerBaseArmor[playerId]}`);
             }
             
             // 检查是否已经有 modifier
@@ -86,82 +90,78 @@ export class EquipmentVaultSystem {
             print(`[EquipmentVaultSystem] 尝试添加 modifier_equipment_system... `);
             const modifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
             
-            if (modifier && !modifier.IsNull()) {
-                this.playerModifiers[playerId] = modifier;
+            if (modifier && !modifier. IsNull()) {
+                this. playerModifiers[playerId] = modifier;
                 print(`[EquipmentVaultSystem] ✓ Modifier 创建成功`);
                 this.RefreshEquipmentStats(playerId);
             } else {
                 print(`[EquipmentVaultSystem] ❌ Modifier 创建失败`);
+                print(`[EquipmentVaultSystem] 请检查 Lua 文件是否存在：`);
+                print(`[EquipmentVaultSystem]   - game/scripts/vscripts/init_modifiers.lua`);
+                print(`[EquipmentVaultSystem]   - game/scripts/vscripts/modifiers/modifier_equipment_system.lua`);
             }
         }
     }
 
     // 保存装备到仓库
     static SaveToVault(playerId: PlayerID, item: ExternalRewardItem): void {
-        print(`[EquipmentVaultSystem] 保存玩家${playerId}获得的装备：${item.name}`);
-        
-        if (! this.playerVaults[playerId]) {
+        if (!this.playerVaults[playerId]) {
             this.playerVaults[playerId] = [];
         }
         
-        this. playerVaults[playerId].push(item);
+        this.playerVaults[playerId].push(item);
+        print(`[EquipmentVaultSystem] 保存玩家${playerId}获得的装备：${item.name}`);
+        
+        // 保存到持久化存储
         this.SaveToPersistentStorage(playerId);
     }
 
     // 获取玩家仓库
     static GetVault(playerId: PlayerID): ExternalRewardItem[] {
-        if (!this.playerVaults[playerId]) {
-            this.playerVaults[playerId] = [];
-        }
-        return this.playerVaults[playerId];
+        return this.playerVaults[playerId] || [];
     }
 
     // 获取玩家装备
     static GetEquipment(playerId: PlayerID): { [slot: string]: ExternalRewardItem | null } {
-        if (!this.playerEquipment[playerId]) {
-            this.playerEquipment[playerId] = {
-                helmet: null,
-                necklace: null,
-                ring: null,
-                trinket: null,
-                weapon: null,
-                armor: null,
-                belt: null,
-                boots: null,
-            };
-        }
-        return this.playerEquipment[playerId];
+        return this.playerEquipment[playerId] || {};
     }
 
-    // 从仓库装备物品
-    static EquipItem(playerId: PlayerID, index: number): boolean {
-        const vault = this.GetVault(playerId);
+    // 装备物品
+    static EquipItem(playerId: PlayerID, vaultIndex: number): boolean {
+        const vault = this. GetVault(playerId);
+        const item = vault[vaultIndex];
         
-        if (index < 0 || index >= vault.length) {
-            print(`[EquipmentVaultSystem] ❌ 无效的索引：${index}`);
+        if (!item) {
+            print(`[EquipmentVaultSystem] ❌ 仓库索引${vaultIndex}无效`);
             return false;
         }
         
-        const item = vault[index];
         const slot = ITEM_TYPE_TO_SLOT[item.type];
-        
-        if (! slot) {
-            print(`[EquipmentVaultSystem] ❌ 未知的装备类型：${item.type}`);
+        if (!slot) {
+            print(`[EquipmentVaultSystem] ❌ 无法识别装备类型：${item.type}`);
             return false;
         }
-        
-        vault.splice(index, 1);
-        print(`[EquipmentVaultSystem] 从仓库移除：${item.name}，剩余 ${vault.length} 件`);
         
         const equipment = this.GetEquipment(playerId);
+        
+        // 如果槽位已有装备，先卸下
         if (equipment[slot]) {
             const oldItem = equipment[slot]!;
             print(`[EquipmentVaultSystem] ${slot} 槽位已有装备：${oldItem.name}，卸下旧装备`);
-            vault.push(oldItem);
+            this.SaveToVault(playerId, oldItem);
         }
         
+        // 从仓库移除
+        vault. splice(vaultIndex, 1);
+        print(`[EquipmentVaultSystem] 从仓库移除：${item.name}，剩余 ${vault.length} 件`);
+        
+        // 装备到槽位
         equipment[slot] = item;
+        
+        // 刷新装备属性
         this.RefreshEquipmentStats(playerId);
+        
+        // 保存到持久化存储
         this.SaveToPersistentStorage(playerId);
         
         print(`[EquipmentVaultSystem] ✓ 玩家${playerId}装备了：${item.name} 到槽位 ${slot}`);
@@ -169,25 +169,32 @@ export class EquipmentVaultSystem {
     }
 
     // 卸下装备
-    static UnequipItem(playerId: PlayerID, slot: string): boolean {
+    static UnequipItem(playerId: PlayerID, slot: EquipmentSlot): boolean {
         const equipment = this. GetEquipment(playerId);
         const item = equipment[slot];
         
         if (!item) {
-            print(`[EquipmentVaultSystem] ❌ 槽位 ${slot} 没有装备`);
+            print(`[EquipmentVaultSystem] ❌ 槽位${slot}没有装备`);
             return false;
         }
         
+        // 放回仓库
         this.SaveToVault(playerId, item);
+        
+        // 清空槽位
         equipment[slot] = null;
+        
+        // 刷新装备属性
         this.RefreshEquipmentStats(playerId);
-        this. SaveToPersistentStorage(playerId);
+        
+        // 保存到持久化存储
+        this.SaveToPersistentStorage(playerId);
         
         print(`[EquipmentVaultSystem] ✓ 玩家${playerId}卸下了：${item.name}`);
         return true;
     }
 
-    // ⭐ 刷新装备属性（只有一个版本）
+    // 刷新装备属性
     private static RefreshEquipmentStats(playerId: PlayerID): void {
         const equipment = this.GetEquipment(playerId);
         const modifier = this.playerModifiers[playerId];
@@ -208,6 +215,7 @@ export class EquipmentVaultSystem {
             attack_speed: 0,
             move_speed: 0,
             magic_resistance: 0,
+           
         };
         
         print(`[EquipmentVaultSystem] 开始计算装备属性总和...`);
@@ -217,7 +225,7 @@ export class EquipmentVaultSystem {
             if (item) {
                 print(`[EquipmentVaultSystem]   槽位 ${slot}: ${item.name}`);
                 item.stats.forEach(stat => {
-                    const key = this.AttributeToKey(stat. attribute);
+                    const key = this.AttributeToKey(stat.attribute);
                     if (key) {
                         totalStats[key] = (totalStats[key] || 0) + stat.value;
                         print(`[EquipmentVaultSystem]     +${stat.value} ${stat.attribute} (${key})`);
@@ -234,30 +242,20 @@ export class EquipmentVaultSystem {
         hero.SetPhysicalArmorBaseValue(newArmor);
         print(`[EquipmentVaultSystem] 🛡️ 设置护甲: 基础(${baseArmor}) + 装备(${totalStats.armor}) = ${newArmor}`);
         
-        modifier. Destroy();
+        modifier.Destroy();
         
         print(`[EquipmentVaultSystem] ⭐ 重新创建 Modifier 以刷新属性`);
         
         const newModifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
         
-        if (newModifier && ! newModifier.IsNull()) {
-            this.playerModifiers[playerId] = newModifier;
+        if (newModifier && !newModifier. IsNull()) {
+            this. playerModifiers[playerId] = newModifier;
             
-            // ⭐ 延迟调用 UpdateStats，确保 modifier 完全初始化
-            Timers.CreateTimer(0.03, () => {
-                if (newModifier && !newModifier.IsNull()) {
-                    const updateFn = (newModifier as any).UpdateStats;
-                    if (updateFn) {
-                        updateFn. call(newModifier, totalStats);
-                    } else {
-                        print(`[EquipmentVaultSystem] ⚠️ UpdateStats 方法不存在`);
-                    }
-                }
-                return undefined;
-            });
+            // 调用 Modifier 的 UpdateStats 方法
+            (newModifier as any).UpdateStats(totalStats);
             
             print(`[EquipmentVaultSystem] ========== 装备属性总和 ==========`);
-            print(`[EquipmentVaultSystem] 力量: +${totalStats.strength}`);
+            print(`[EquipmentVaultSystem] 力量: +${totalStats. strength}`);
             print(`[EquipmentVaultSystem] 敏捷: +${totalStats.agility}`);
             print(`[EquipmentVaultSystem] 智力: +${totalStats.intelligence}`);
             print(`[EquipmentVaultSystem] 护甲: +${totalStats.armor}`);
@@ -267,86 +265,43 @@ export class EquipmentVaultSystem {
         }
     }
 
-    // 属性名称转换为键名
-    private static AttributeToKey(attribute: string): string | null {
+    // 属性枚举转换为键名
+    private static AttributeToKey(attribute: EquipmentAttribute): string | null {
         const mapping: { [key: string]: string } = {
-            "力量": "strength",
-            "敏捷": "agility",
-            "智力": "intelligence",
-            "护甲": "armor",
-            "生命": "health",
-            "魔法": "mana",
-            "攻击力": "attack_damage",
-            "攻击速度": "attack_speed",
-            "移动速度": "move_speed",
-            "魔抗": "magic_resistance",
+            [EquipmentAttribute.STRENGTH]: 'strength',
+            [EquipmentAttribute.AGILITY]: 'agility',
+            [EquipmentAttribute.INTELLIGENCE]: 'intelligence',
+            [EquipmentAttribute.ARMOR]: 'armor',
+            [EquipmentAttribute.HEALTH]: 'health',
+            [EquipmentAttribute.MANA]: 'mana',
+            [EquipmentAttribute. ATTACK_DAMAGE]: 'attack_damage',
+            [EquipmentAttribute.ATTACK_SPEED]: 'attack_speed',
+            [EquipmentAttribute.MOVE_SPEED]: 'move_speed',
+            [EquipmentAttribute. MAGIC_RESISTANCE]: 'magic_resistance',
+           
         };
         return mapping[attribute] || null;
     }
 
-    // 持久化保存
+    // 持久化存储（使用 CustomNetTables）
     private static SaveToPersistentStorage(playerId: PlayerID): void {
-        const items = this.playerVaults[playerId] || [];
-        const equipment = this.playerEquipment[playerId] || {};
+        const vault = this.GetVault(playerId);
+        const equipment = this.GetEquipment(playerId);
         
-        const serializedItems: any = {};
-        items.forEach((item, index) => {
-            serializedItems[index. toString()] = {
-                name: item.name,
-                type: item.type,
-                icon: item.icon,
-                stats: item.stats.map(stat => ({ attribute: stat.attribute, value: stat.value }))
-            };
-        });
-        
-        const serializedEquipment: any = {};
-        for (const slot in equipment) {
-            const item = equipment[slot];
-            serializedEquipment[slot] = item ? {
-                name: item. name,
-                type: item. type,
-                icon: item. icon,
-                stats: item. stats.map(stat => ({ attribute: stat.attribute, value: stat.value }))
-            } : null;
-        }
-        
-        CustomNetTables.SetTableValue("player_vaults", playerId. toString(), {
-            items: serializedItems,
-            equipment: serializedEquipment,
-            timestamp: Time()
-        } as any);
+        CustomNetTables.SetTableValue("equipment_system", `player_${playerId}_vault`, { items: vault });
+        CustomNetTables.SetTableValue("equipment_system", `player_${playerId}_equipment`, equipment);
     }
 
-    // 持久化加载
     private static LoadFromPersistentStorage(playerId: PlayerID): void {
-        const data = CustomNetTables.GetTableValue("player_vaults", playerId.toString()) as any;
+        const vaultData = CustomNetTables. GetTableValue("equipment_system", `player_${playerId}_vault`);
+        const equipmentData = CustomNetTables. GetTableValue("equipment_system", `player_${playerId}_equipment`);
         
-        if (data) {
-            if (data.items) {
-                const items: ExternalRewardItem[] = [];
-                for (const key in data.items) {
-                    const item = data.items[key];
-                    let statsArray = Array.isArray(item.stats) ? item.stats : Object.values(item.stats);
-                    items.push({ name: item.name, type: item.type, icon: item. icon, stats: statsArray });
-                }
-                this.playerVaults[playerId] = items;
-            }
-            
-            if (data.equipment) {
-                const equipment: { [slot: string]: ExternalRewardItem | null } = {};
-                for (const slot in data.equipment) {
-                    const item = data.equipment[slot];
-                    if (item) {
-                        let statsArray = Array.isArray(item.stats) ? item.stats : Object.values(item.stats);
-                        equipment[slot] = { name: item.name, type: item.type, icon: item.icon, stats: statsArray };
-                    } else {
-                        equipment[slot] = null;
-                    }
-                }
-                this.playerEquipment[playerId] = equipment;
-            }
-        } else {
-            this.playerVaults[playerId] = [];
+        if (vaultData && vaultData.items) {
+            this.playerVaults[playerId] = vaultData.items as ExternalRewardItem[];
+        }
+        
+        if (equipmentData) {
+            this.playerEquipment[playerId] = equipmentData as { [slot: string]: ExternalRewardItem | null };
         }
     }
 }

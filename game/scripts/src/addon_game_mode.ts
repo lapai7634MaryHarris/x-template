@@ -12,12 +12,24 @@ import './examples/abilities/axe_giant_strike';
 import { ExternalRewardItem, ExternalItemType, EquipmentAttribute } from "./dungeon/external_reward_pool";
 import { SimpleDungeon } from "./dungeon/simple_dungeon";
 import { EquipmentVaultSystem } from './systems/equipment_vault_system';
+import './modifiers/modifier_equipment_system';  // ⭐ 添加这一行
+// 初始化模块
+if (IsServer()) {
+    pcall(() => require('init_modifiers'));
+}
+
+declare global {
+    interface CDOTAGameRules {
+        SimpleDungeon?: SimpleDungeon;
+    }
+}
 declare function require(module: string): void;
 declare global {
     interface CDOTAGameRules {
         SimpleDungeon?: SimpleDungeon;
     }
 }
+  
 
 let dungeonPortalInstance: CDOTA_BaseNPC | undefined = undefined;
 const lastMenuTriggerTime: { [key: number]: number } = {};
@@ -485,22 +497,45 @@ Object.assign(getfenv(), {
         }
         
         // ⭐ 监听玩家连接事件，加载装备仓库
-        ListenToGameEvent("player_connect_full", (event) => {
-            const playerId = event.PlayerID as PlayerID;
-            print(`[GameMode] 玩家${playerId}连接，加载装备仓库... `);
-            
-            // 加载玩家的装备仓库
-            EquipmentVaultSystem.InitializePlayer(playerId);
-            
-            // ⭐ 如果仓库为空，添加测试装备
-            const vault = EquipmentVaultSystem.GetVault(playerId);
-            if (vault.length === 0) {
-                print(`[GameMode] 仓库为空，添加测试装备... `);
-                AddTestEquipmentToVault(playerId);
-            } else {
-                print(`[GameMode] 仓库已有 ${vault.length} 件装备`);
-            }
-        }, undefined);
+   // ⭐ 监听玩家连接事件
+ListenToGameEvent("player_connect_full", (event) => {
+    const playerId = event.PlayerID as PlayerID;
+    print(`[GameMode] 玩家${playerId}连接`);
+}, undefined);
+
+
+// ⭐ 监听英雄生成事件，初始化装备系统
+ListenToGameEvent("npc_spawned", (event) => {
+    const spawnedUnit = EntIndexToHScript(event.entindex) as CDOTA_BaseNPC;
+    
+    // 只处理真实英雄
+    if (! spawnedUnit || !spawnedUnit.IsRealHero()) {
+        return;
+    }
+    
+    const playerId = spawnedUnit.GetPlayerOwnerID();
+    if (playerId === -1) return;
+    
+    // 避免重复初始化（检查是否已经初始化过）
+    const equipment = (EquipmentVaultSystem as any).playerEquipment[playerId];
+    if (equipment) {
+        return; // 已经初始化过了
+    }
+    
+    print(`[GameMode] 玩家${playerId}的英雄已生成，初始化装备系统...`);
+    
+    // ⭐ 将生成的英雄传递给装备系统
+    EquipmentVaultSystem.InitializePlayer(playerId, spawnedUnit as CDOTA_BaseNPC_Hero);
+    
+    // ⭐ 如果仓库为空，添加测试装备
+    const vault = EquipmentVaultSystem.GetVault(playerId);
+    if (vault.length === 0) {
+        print(`[GameMode] 仓库为空，添加测试装备...`);
+        AddTestEquipmentToVault(playerId);
+    } else {
+        print(`[GameMode] 仓库已有 ${vault.length} 件装备`);
+    }
+}, undefined);
         
         // ⭐ 注册装备命令（用于测试）
         Convars.RegisterCommand("equip", (itemIndex: string) => {
