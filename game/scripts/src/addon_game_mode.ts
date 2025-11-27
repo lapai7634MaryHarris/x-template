@@ -465,6 +465,8 @@ function AddTestEquipmentToVault(playerId: PlayerID) {
 
 Object.assign(getfenv(), {
     Activate: () => {
+        
+        
         print("=". repeat(50));
         print("[GameMode] Activating.. .");
         print("=".repeat(50));
