@@ -28,70 +28,67 @@ export class EquipmentVaultSystem {
     private static playerVaults: { [playerId: number]: ExternalRewardItem[] } = {};
     private static playerEquipment: { [playerId: number]: { [slot: string]: ExternalRewardItem | null } } = {};
     private static playerModifiers: { [playerId: number]: CDOTA_Buff } = {};
-    private static modifierLoadAttempted: boolean = false;
+   private static modifierLoadAttempted: boolean = false;
 
-    // 初始化玩家仓库和装备
-    static InitializePlayer(playerId: PlayerID): void {
-        print(`[EquipmentVaultSystem] 初始化玩家${playerId}的仓库和装备`);
-        
-        // 初始化装备槽
-        if (! this.playerEquipment[playerId]) {
-            this.playerEquipment[playerId] = {
-                helmet: null,
-                necklace: null,
-                ring: null,
-                trinket: null,
-                weapon: null,
-                armor: null,
-                belt: null,
-                boots: null,
-            };
+ 
+// 初始化玩家仓库和装备
+static InitializePlayer(playerId: PlayerID): void {
+    print(`[EquipmentVaultSystem] 初始化玩家${playerId}的仓库和装备`);
+    
+    // 初始化装备槽
+    if (!this.playerEquipment[playerId]) {
+        this.playerEquipment[playerId] = {
+            helmet: null,
+            necklace: null,
+            ring: null,
+            trinket: null,
+            weapon: null,
+            armor: null,
+            belt: null,
+            boots: null,
+        };
+    }
+    
+    // 从持久化存储加载
+    this.LoadFromPersistentStorage(playerId);
+    
+    // 创建装备系统 Modifier
+    if (IsServer()) {
+        // ⭐ 第一次初始化时，加载 Modifier 初始化脚本
+        if (!this.modifierLoadAttempted) {
+            this.modifierLoadAttempted = true;
+            print('[EquipmentVaultSystem] 调用 init_modifiers.. .');
+            
+            const [success] = pcall(() => {
+                // 使用 _G 访问全局 require
+                const globalRequire = (_G as any).require;
+                if (globalRequire) {
+                    globalRequire('init_modifiers');
+                }
+            });
+            
+            if (! success) {
+                print('[EquipmentVaultSystem] ⚠️ init_modifiers 调用失败（可能已加载）');
+            }
         }
         
-        // 从持久化存储加载
-        this.LoadFromPersistentStorage(playerId);
-        
-        // 创建装备系统 Modifier
-        if (IsServer()) {
-            // ⭐ 第一次初始化时，尝试加载 Modifier 文件
-            if (!this. modifierLoadAttempted) {
-                this.modifierLoadAttempted = true;
-                print('[EquipmentVaultSystem] 尝试加载 modifier_equipment_system.lua.. .');
-                
-                // 使用 pcall 安全调用，避免崩溃
-                const [success, error] = pcall(() => {
-                    // 使用 DoIncludeScript 加载文件（只传 1 个参数）
-                    (globalThis as any).DoIncludeScript("modifiers/modifier_equipment_system.lua");
-                });
-                
-                if (success) {
-                    print('[EquipmentVaultSystem] ✓ 已加载 modifier_equipment_system.lua');
-                } else {
-                    print('[EquipmentVaultSystem] ⚠️ 加载失败（可能已经加载过）:');
-                    print(error);
-                }
-            }
+        const hero = PlayerResource.GetSelectedHeroEntity(playerId);
+        if (hero) {
+            const modifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
             
-            const hero = PlayerResource. GetSelectedHeroEntity(playerId);
-            if (hero) {
-                // 尝试创建 Modifier
-                const [success, modifier] = pcall(() => {
-                    return hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
-                });
+            if (modifier && !modifier. IsNull()) {
+                this. playerModifiers[playerId] = modifier;
+                print(`[EquipmentVaultSystem] ✓ 为玩家${playerId}创建装备系统 Modifier`);
                 
-                if (success && modifier && !modifier.IsNull()) {
-                    this.playerModifiers[playerId] = modifier;
-                    print(`[EquipmentVaultSystem] ✓ 为玩家${playerId}创建装备系统 Modifier`);
-                    
-                    // 刷新装备属性
-                    this. RefreshEquipmentStats(playerId);
-                } else {
-                    print(`[EquipmentVaultSystem] ❌ 创建 Modifier 失败`);
-                    print(`[EquipmentVaultSystem] 原因: ${modifier}`);
-                }
+                // 刷新装备属性
+                this. RefreshEquipmentStats(playerId);
+            } else {
+                print(`[EquipmentVaultSystem] ❌ 创建 Modifier 失败`);
+                print(`[EquipmentVaultSystem] 请确认 modifier_equipment_system.lua 文件存在且无语法错误`);
             }
         }
     }
+}
 
     // 保存装备到仓库
     static SaveToVault(playerId: PlayerID, item: ExternalRewardItem): void {
