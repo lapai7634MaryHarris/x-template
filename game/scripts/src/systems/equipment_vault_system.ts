@@ -83,10 +83,11 @@ export class EquipmentVaultSystem {
     }
 
     // 从仓库装备物品
+// 从仓库装备物品
 static EquipItem(playerId: PlayerID, index: number): boolean {
-    const vault = this.GetVault(playerId);
+    const vault = this. GetVault(playerId);
     
-    if (index < 0 || index >= vault.length) {
+    if (index < 0 || index >= vault. length) {
         print(`[EquipmentVaultSystem] ❌ 无效的索引：${index}`);
         return false;
     }
@@ -95,8 +96,8 @@ static EquipItem(playerId: PlayerID, index: number): boolean {
     
     // 确定装备槽位
     const slot = ITEM_TYPE_TO_SLOT[item. type];
-    if (! slot) {
-        print(`[EquipmentVaultSystem] ❌ 未知的装备类型：${item. type}`);
+    if (!slot) {
+        print(`[EquipmentVaultSystem] ❌ 未知的装备类型：${item.type}`);
         return false;
     }
     
