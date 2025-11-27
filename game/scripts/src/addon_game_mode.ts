@@ -144,6 +144,98 @@ function ListenToDungeonSelection() {
         // 保存到装备库
         EquipmentVaultSystem.SaveToVault(playerId, reward);
     });*/
+    // 监听装备仓库数据请求
+    CustomGameEventManager.RegisterListener("request_vault_data", (userId, event: any) => {
+        const playerId = event.PlayerID as PlayerID;
+        
+        print(`[SimpleDungeon] 响应仓库数据请求：${playerId}`);
+        
+        const vault = EquipmentVaultSystem.GetVault(playerId);
+        
+        // 转换为可序列化格式
+        const serializedItems: any = {};
+        vault.forEach((item, index) => {
+            serializedItems[(index + 1).toString()] = {
+                name: item. name,
+                type: item. type,
+                icon: item. icon,
+                attribute: item. attribute,
+                value: item. value
+            };
+        });
+        
+        const player = PlayerResource.GetPlayer(playerId);
+        if (player) {
+            (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_vault_ui', {
+                items: serializedItems
+            });
+            print(`[SimpleDungeon] 响应仓库数据请求：${vault.length} 件装备`);
+        }
+    });
+
+    // 监听从仓库装备物品
+    CustomGameEventManager.RegisterListener("equip_item_from_vault", (userId, event: any) => {
+        const playerId = event.PlayerID as PlayerID;
+        const index = event.index as number;
+        
+        print(`[SimpleDungeon] 玩家${playerId}装备仓库索引${index}的装备`);
+        
+        if (EquipmentVaultSystem.EquipItem(playerId, index)) {
+            print(`[SimpleDungeon] ✓ 装备成功`);
+        } else {
+            print(`[SimpleDungeon] ❌ 装备失败`);
+        }
+    });
+
+    // ⭐ 监听装备界面数据请求
+    CustomGameEventManager. RegisterListener("request_equipment_data", (userId, event: any) => {
+        const playerId = event.PlayerID as PlayerID;
+        
+        print(`[SimpleDungeon] 响应装备界面数据请求：${playerId}`);
+        
+        const equipment = EquipmentVaultSystem.GetEquipment(playerId);
+        
+        // 转换为可序列化格式
+        const serializedEquipment: any = {};
+        for (const slot in equipment) {
+            const item = equipment[slot];
+            if (item) {
+                serializedEquipment[slot] = {
+                    name: item.name,
+                    type: item.type,
+                    icon: item.icon,
+                    attribute: item.attribute,
+                    value: item.value
+                };
+            } else {
+                serializedEquipment[slot] = null;
+            }
+        }
+        
+        const player = PlayerResource.GetPlayer(playerId);
+        if (player) {
+            (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_equipment_ui', {
+                equipment: serializedEquipment
+            });
+            print(`[SimpleDungeon] 发送装备界面数据`);
+        }
+    });
+
+    // ⭐ 监听卸下装备
+    CustomGameEventManager.RegisterListener("unequip_item", (userId, event: any) => {
+        const playerId = event.PlayerID as PlayerID;
+        const slot = event.slot as string;
+        
+        print(`[SimpleDungeon] 玩家${playerId}卸下槽位${slot}的装备`);
+        
+        if (EquipmentVaultSystem. UnequipItem(playerId, slot)) {
+            print(`[SimpleDungeon] ✓ 卸下成功`);
+        } else {
+            print(`[SimpleDungeon] ❌ 卸下失败`);
+        }
+    });
+
+    print("[GameMode] 装备系统事件监听已注册");
 }
 
 Object.assign(getfenv(), {

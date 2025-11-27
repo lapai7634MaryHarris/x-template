@@ -26,7 +26,8 @@ interface EquipmentUIProps {
 }
 
 export const EquipmentUI: React.FC<EquipmentUIProps> = ({ visible, onClose }) => {
-    const [equippedItems, setEquippedItems] = useState<Record<string, EquippedItem | null>>({
+    // 默认槽初始化
+    const initialSlots: Record<string, EquippedItem | null> = {
         helmet: null,
         necklace: null,
         ring: null,
@@ -35,24 +36,29 @@ export const EquipmentUI: React.FC<EquipmentUIProps> = ({ visible, onClose }) =>
         armor: null,
         belt: null,
         boots: null,
-    });
+    };
 
-    // 加载装备数据
+    const [equippedItems, setEquippedItems] = useState<Record<string, EquippedItem | null>>(initialSlots);
+
+     // 加载装备数据
     useEffect(() => {
-        if (! visible) return;
+        if (!visible) return;
 
-        $. Msg('[EquipmentUI] 请求装备数据');
+        $.Msg('[EquipmentUI] 请求装备数据');
         
         (GameEvents.SendCustomGameEventToServer as any)('request_equipment_data', {
-            PlayerID: Players.GetLocalPlayer()
+            PlayerID: Players.GetLocalPlayer(),
         });
 
         const listener = GameEvents.Subscribe('update_equipment_ui', (data: any) => {
-            $. Msg('[EquipmentUI] 收到装备数据:', data);
-            
-            if (data. equipment) {
-                setEquippedItems(data.equipment);
-            }
+            $.Msg('[EquipmentUI] 收到装备数据:', data);
+
+            // 确保数据格式安全，即便装备槽数据不完整也能渲染
+            const updatedEquipment: Record<string, EquippedItem | null> = {
+                ...initialSlots,
+                ...data.equipment,
+            };
+            setEquippedItems(updatedEquipment);
         });
 
         return () => {
@@ -78,7 +84,7 @@ export const EquipmentUI: React.FC<EquipmentUIProps> = ({ visible, onClose }) =>
     const getQualityColor = (item: EquippedItem): string => {
         if (item.value >= 15) return '#ff8000';
         if (item.value >= 12) return '#a335ee';
-        if (item. value >= 8) return '#0070dd';
+        if (item.value >= 8) return '#0070dd';
         if (item.value >= 5) return '#1eff00';
         return '#9d9d9d';
     };
@@ -96,7 +102,7 @@ export const EquipmentUI: React.FC<EquipmentUIProps> = ({ visible, onClose }) =>
                     height: '100px',
                     margin: '10px',
                     backgroundColor: hasItem ? '#1a1a1a' : '#0a0a0a',
-                    border: hasItem ? `3px solid ${getQualityColor(item! )}` : '2px solid #3a3a3a',
+                    border: hasItem ? `3px solid ${getQualityColor(item!)}` : '2px solid #3a3a3a',
                     flowChildren: 'right',
                     padding: '10px',
                 }}
@@ -123,11 +129,11 @@ export const EquipmentUI: React.FC<EquipmentUIProps> = ({ visible, onClose }) =>
                     height: '80px',
                     backgroundColor: '#0a0a0a',
                     border: '1px solid #555555',
-                    backgroundImage: hasItem ? `url("${item! .icon}")` : 'none',
+                    backgroundImage: hasItem ? `url("${item!.icon}")` : 'none',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                 }}>
-                    {! hasItem && (
+                    {!hasItem && (
                         <Label 
                             text={getSlotIcon(slotName)}
                             style={{
@@ -194,7 +200,7 @@ export const EquipmentUI: React.FC<EquipmentUIProps> = ({ visible, onClose }) =>
             belt: '🎗️',
             boots: '🥾',
         };
-        return icons[slot] || '? ';
+        return icons[slot] || '?';
     };
 
     // 计算总属性
@@ -252,9 +258,7 @@ export const EquipmentUI: React.FC<EquipmentUIProps> = ({ visible, onClose }) =>
                             fontWeight: 'bold',
                         }}
                     />
-                    {/* 弹性空间 */}
                     <Panel style={{ width: '100%', height: '1px' }} />
-                    {/* 关闭按钮 */}
                     <Button 
                         onactivate={onClose}
                         style={{
@@ -263,122 +267,44 @@ export const EquipmentUI: React.FC<EquipmentUIProps> = ({ visible, onClose }) =>
                             backgroundColor: '#8b0000',
                             border: '2px solid #ff0000',
                         }}
-                        onmouseover={(panel) => {
-                            panel.style. backgroundColor = '#b22222';
-                        }}
-                        onmouseout={(panel) => {
-                            panel.style.backgroundColor = '#8b0000';
-                        }}
                     >
                         <Label text="✕" style={{ fontSize: '28px', color: 'white', textAlign: 'center' }} />
                     </Button>
                 </Panel>
 
                 {/* 装备区域 */}
-                <Panel style={{
-                    width: '100%',
-                    height: '640px',
-                    padding: '20px',
-                    flowChildren: 'right',
-                }}>
-                    {/* 左侧装备槽 */}
-                    <Panel style={{
-                        width: '250px',
-                        height: '100%',
-                        flowChildren: 'down',
-                    }}>
+                <Panel style={{ width: '100%', height: '640px', padding: '20px', flowChildren: 'right' }}>
+                    {/* 左侧槽位 */}
+                    <Panel style={{ width: '250px', height: '100%', flowChildren: 'down' }}>
                         {renderSlot('helmet', '头盔')}
                         {renderSlot('necklace', '项链')}
                         {renderSlot('ring', '戒指')}
                         {renderSlot('trinket', '饰品')}
                     </Panel>
 
-                    {/* 中间角色展示区 */}
+                    {/* 中角色部分 */}
                     <Panel style={{
                         width: '350px',
                         height: '100%',
                         flowChildren: 'down',
                         padding: '20px',
                     }}>
-                        {/* 角色名称 */}
-                        <Label 
-                            text="英雄装备"
-                            style={{
-                                fontSize: '28px',
-                                color: '#ffd700',
-                                textAlign: 'center',
-                                marginBottom: '20px',
-                                fontWeight: 'bold',
-                            }}
-                        />
-
-                        {/* 角色立绘占位 */}
+                        <Label text="总属性加成" style={{ fontSize: '20px', marginBottom: '20px' }} />
+                        {Object.entries(totalStats).map(([attr, value]) => (
+                            <Label key={attr} text={`${attr}: +${value}`} />
+                        ))}
                         <Panel style={{
                             width: '100%',
                             height: '300px',
                             backgroundColor: '#0a0a0a',
                             border: '2px solid #555555',
-                            marginBottom: '20px',
                         }}>
-                            <Label 
-                                text="🦸"
-                                style={{
-                                    fontSize: '120px',
-                                    textAlign: 'center',
-                                    horizontalAlign: 'center',
-                                    verticalAlign: 'center',
-                                }}
-                            />
-                        </Panel>
-
-                        {/* 属性统计 */}
-                        <Panel style={{
-                            width: '100%',
-                            backgroundColor: '#0a0a0a',
-                            border: '2px solid #ffd700',
-                            padding: '15px',
-                            flowChildren: 'down',
-                        }}>
-                            <Label 
-                                text="总属性加成"
-                                style={{
-                                    fontSize: '20px',
-                                    color: '#ffd700',
-                                    marginBottom: '10px',
-                                    textAlign: 'center',
-                                }}
-                            />
-                            {Object.entries(totalStats).length > 0 ? (
-                                Object.entries(totalStats). map(([attr, value]) => (
-                                    <Label 
-                                        key={attr}
-                                        text={`${attr}: +${value}`}
-                                        style={{
-                                            fontSize: '18px',
-                                            color: '#00ff00',
-                                            marginBottom: '5px',
-                                        }}
-                                    />
-                                ))
-                            ) : (
-                                <Label 
-                                    text="暂无装备"
-                                    style={{
-                                        fontSize: '16px',
-                                        color: '#888888',
-                                        textAlign: 'center',
-                                    }}
-                                />
-                            )}
+                            <Label text="🦸" style={{ fontSize: '120px', textAlign: 'center' }} />
                         </Panel>
                     </Panel>
 
-                    {/* 右侧装备槽 */}
-                    <Panel style={{
-                        width: '250px',
-                        height: '100%',
-                        flowChildren: 'down',
-                    }}>
+                    {/* 右侧槽位 */}
+                    <Panel style={{ width: '250px', height: '100%', flowChildren: 'down' }}>
                         {renderSlot('weapon', '武器')}
                         {renderSlot('armor', '护甲')}
                         {renderSlot('belt', '腰带')}
