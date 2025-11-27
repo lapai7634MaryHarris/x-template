@@ -2,7 +2,8 @@
 declare const _G: any;
 import { ExternalRewardItem, ExternalItemType, EquipmentAttribute } from "../dungeon/external_reward_pool";
 
-
+// ⭐ 初始化全局装备属性表
+_G. EquipmentStats = _G.EquipmentStats || {};
 // 装备槽位枚举
 export enum EquipmentSlot {
     HELMET = 'helmet',
@@ -187,8 +188,8 @@ export class EquipmentVaultSystem {
         return true;
     }
 
-    // ⭐ 刷新装备属性（只有一个版本）
-   private static RefreshEquipmentStats(playerId: PlayerID): void {
+   // ⭐ 刷新装备属性（只有一个版本）
+private static RefreshEquipmentStats(playerId: PlayerID): void {
     const equipment = this.GetEquipment(playerId);
     const modifier = this.playerModifiers[playerId];
     
@@ -216,8 +217,8 @@ export class EquipmentVaultSystem {
         const item = equipment[slot];
         if (item) {
             print(`[EquipmentVaultSystem]   槽位 ${slot}: ${item.name}`);
-            item.stats.forEach(stat => {
-                const key = this.AttributeToKey(stat.attribute);
+            item.stats. forEach(stat => {
+                const key = this.AttributeToKey(stat. attribute);
                 if (key) {
                     totalStats[key] = (totalStats[key] || 0) + stat.value;
                     print(`[EquipmentVaultSystem]     +${stat.value} ${stat.attribute} (${key})`);
@@ -232,28 +233,34 @@ export class EquipmentVaultSystem {
     const baseArmor = this.playerBaseArmor[playerId] || 0;
     const newArmor = baseArmor + totalStats.armor;
     hero.SetPhysicalArmorBaseValue(newArmor);
-    print(`[EquipmentVaultSystem] 🛡️ 设置护甲: 基础(${baseArmor}) + 装备(${totalStats.armor}) = ${newArmor}`);
+    print(`[EquipmentVaultSystem] 🛡️ 设置护甲: 基础(${baseArmor}) + 装备(${totalStats. armor}) = ${newArmor}`);
     
-    modifier.Destroy();
+    modifier. Destroy();
     
     print(`[EquipmentVaultSystem] ⭐ 重新创建 Modifier 以刷新属性`);
     
-    // ⭐ 创建新 modifier 时直接传递 stats 参数
-   const newModifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", totalStats as any);
-
-if (newModifier && !newModifier. IsNull()) {
-    this. playerModifiers[playerId] = newModifier;
+    // ⭐⭐⭐ 新增：将属性存储到全局表 ⭐⭐⭐
+    _G.EquipmentStats[playerId] = totalStats;
     
-    print(`[EquipmentVaultSystem] ========== 装备属性总和 ==========`);
-    print(`[EquipmentVaultSystem] 力量: +${totalStats.strength}`);
-    print(`[EquipmentVaultSystem] 敏捷: +${totalStats.agility}`);
-    print(`[EquipmentVaultSystem] 智力: +${totalStats.intelligence}`);
-    print(`[EquipmentVaultSystem] 护甲: +${totalStats.armor}`);
-    print(`[EquipmentVaultSystem] 攻击力: +${totalStats.attack_damage}`);
-    print(`[EquipmentVaultSystem] =====================================`);
-} else {
-    print(`[EquipmentVaultSystem] ❌ 重新创建 Modifier 失败`);
-}
+    // ⭐ 创建新 modifier 时只传递 playerId
+    const newModifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {
+        playerId: playerId
+    });
+
+    if (newModifier && ! newModifier.IsNull()) {
+        this.playerModifiers[playerId] = newModifier;
+        
+        print(`[EquipmentVaultSystem] ========== 装备属性总和 ==========`);
+        print(`[EquipmentVaultSystem] 力量: +${totalStats.strength}`);
+        print(`[EquipmentVaultSystem] 敏捷: +${totalStats.agility}`);
+        print(`[EquipmentVaultSystem] 智力: +${totalStats.intelligence}`);
+        print(`[EquipmentVaultSystem] 护甲: +${totalStats.armor}`);
+        print(`[EquipmentVaultSystem] 攻击力: +${totalStats.attack_damage}`);
+        print(`[EquipmentVaultSystem] 攻击速度: +${totalStats.attack_speed}`);  // ⭐ 添加日志
+        print(`[EquipmentVaultSystem] =====================================`);
+    } else {
+        print(`[EquipmentVaultSystem] ❌ 重新创建 Modifier 失败`);
+    }
 }
 
     // 属性名称转换为键名
