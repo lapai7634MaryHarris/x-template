@@ -83,49 +83,57 @@ export class EquipmentVaultSystem {
     }
 
     // 从仓库装备物品
-    static EquipItem(playerId: PlayerID, index: number): boolean {
-        const vault = this. GetVault(playerId);
-        
-        if (index < 0 || index >= vault.length) {
-            print(`[EquipmentVaultSystem] ❌ 无效的索引：${index}`);
-            return false;
-        }
-        
-        const item = vault[index];
-        
-        // 确定装备槽位
-        const slot = ITEM_TYPE_TO_SLOT[item.type];
-        if (!slot) {
-            print(`[EquipmentVaultSystem] ❌ 未知的装备类型：${item.type}`);
-            return false;
-        }
-        
-        // 检查槽位是否已有装备
-        const equipment = this.GetEquipment(playerId);
-        if (equipment[slot]) {
-            print(`[EquipmentVaultSystem] ${slot} 槽位已有装备：${equipment[slot]! .name}，先卸下旧装备`);
-            this.UnequipItem(playerId, slot);
-        }
-        
-        // 装备到槽位
-        equipment[slot] = item;
-        
-        // 应用装备属性
-        this.ApplyEquipmentStats(playerId, item);
-        
-        // 从仓库移除
-        vault.splice(index, 1);
-        
-        // 持久化保存
-        this.SaveToPersistentStorage(playerId);
-        
-        print(`[EquipmentVaultSystem] ✓ 玩家${playerId}装备了：${item.name} 到槽位 ${slot}`);
-        
-        // 通知客户端更新装备界面
-        this.SendEquipmentUpdate(playerId);
-        
-        return true;
+static EquipItem(playerId: PlayerID, index: number): boolean {
+    const vault = this.GetVault(playerId);
+    
+    if (index < 0 || index >= vault.length) {
+        print(`[EquipmentVaultSystem] ❌ 无效的索引：${index}`);
+        return false;
     }
+    
+    const item = vault[index];
+    
+    // 确定装备槽位
+    const slot = ITEM_TYPE_TO_SLOT[item. type];
+    if (! slot) {
+        print(`[EquipmentVaultSystem] ❌ 未知的装备类型：${item. type}`);
+        return false;
+    }
+    
+    // ⭐ 先从仓库移除新装备
+    vault.splice(index, 1);
+    print(`[EquipmentVaultSystem] 从仓库移除：${item.name}，剩余 ${vault.length} 件`);
+    
+    // ⭐ 检查槽位是否已有装备
+    const equipment = this.GetEquipment(playerId);
+    if (equipment[slot]) {
+        const oldItem = equipment[slot]! ;
+        print(`[EquipmentVaultSystem] ${slot} 槽位已有装备：${oldItem.name}，卸下旧装备`);
+        
+        // 移除旧装备属性
+        EquipmentVaultSystem.RemoveEquipmentStats(playerId, oldItem);
+        
+        // 放回仓库
+        vault.push(oldItem);
+        print(`[EquipmentVaultSystem] 旧装备放回仓库，现有 ${vault.length} 件`);
+    }
+    
+    // 装备到槽位
+    equipment[slot] = item;
+    
+    // 应用新装备属性
+    EquipmentVaultSystem.ApplyEquipmentStats(playerId, item);
+    
+    // 持久化保存
+    EquipmentVaultSystem.SaveToPersistentStorage(playerId);
+    
+    print(`[EquipmentVaultSystem] ✓ 玩家${playerId}装备了：${item.name} 到槽位 ${slot}`);
+    
+    // 通知客户端更新装备界面
+    EquipmentVaultSystem.SendEquipmentUpdate(playerId);
+    
+    return true;
+}
 
     // 卸下装备
     static UnequipItem(playerId: PlayerID, slot: string): boolean {

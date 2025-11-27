@@ -160,19 +160,7 @@ CustomGameEventManager.  RegisterListener("request_vault_data", (userId, event: 
     }
 });
 
-    // 监听从仓库装备物品
-    CustomGameEventManager.RegisterListener("equip_item_from_vault", (userId, event: any) => {
-        const playerId = event.PlayerID as PlayerID;
-        const index = event.index as number;
-        
-        print(`[SimpleDungeon] 玩家${playerId}装备仓库索引${index}的装备`);
-        
-        if (EquipmentVaultSystem. EquipItem(playerId, index)) {
-            print(`[SimpleDungeon] ✓ 装备成功`);
-        } else {
-            print(`[SimpleDungeon] ❌ 装备失败`);
-        }
-    });
+
 
     // 监听装备界面数据请求
     CustomGameEventManager.RegisterListener("request_equipment_data", (userId, event: any) => {

@@ -25,7 +25,8 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
     const [equippedItems, setEquippedItems] = useState<Record<string, ExternalRewardItem | null>>({});
     const [hoveredItem, setHoveredItem] = useState<number | null>(null);
     const [compareEquipment, setCompareEquipment] = useState<ExternalRewardItem | null>(null);
-    
+    const [isEquipping, setIsEquipping] = useState(false);  // ⭐ 添加这一行
+
     const hoverTimeoutRef = useRef<number | null>(null);
 
     // ==================== 数据加载逻辑 ====================
@@ -76,12 +77,33 @@ const vaultListener = GameEvents.Subscribe('update_vault_ui', (data: any) => {
     $. Msg(`[VaultUI] 显示 ${items.length} 件装备`);
 });
 
-        // 监听装备数据
-        const equipmentListener = GameEvents.Subscribe('update_equipment_ui', (data: any) => {
-            $. Msg('[VaultUI] 收到装备数据:', data);
-            const equipment: Record<string, ExternalRewardItem | null> = data.equipment || {};
-            setEquippedItems(equipment);
-        });
+
+const equipmentListener = GameEvents. Subscribe('update_equipment_ui', (data: any) => {
+    $. Msg('[VaultUI] 收到装备数据:', data);
+    
+    // ⭐ 转换装备数据，确保 stats 是数组
+    const processedEquipment: Record<string, ExternalRewardItem | null> = {};
+    
+    for (const slot in data.equipment) {
+        const item = data.  equipment[slot];
+        
+        if (item) {
+            // 将 stats 对象转为数组
+            const statsArray = Array.isArray(item.stats) 
+                ?   item.stats 
+                : Object.values(item.stats || {});
+            
+            processedEquipment[slot] = {
+                ...item,
+                stats: statsArray  // ✅ 保证 stats 是数组
+            };
+        } else {
+            processedEquipment[slot] = null;
+        }
+    }
+    
+    setEquippedItems(processedEquipment);
+});
 
         return () => {
             GameEvents.Unsubscribe(vaultListener);
@@ -90,22 +112,36 @@ const vaultListener = GameEvents.Subscribe('update_vault_ui', (data: any) => {
     }, [visible]);
 
     // ==================== 装备物品逻辑 ====================
+
     const onEquipItem = (index: number) => {
-        $. Msg(`[VaultUI] 装备索引 ${index} 的装备`);
-        
-        (GameEvents.SendCustomGameEventToServer as any)('equip_item_from_vault', {
-            PlayerID: Players.GetLocalPlayer(),
-            index: index
-        });
+    // ⭐ 防止重复点击
+    if (isEquipping) {
+        $. Msg('[VaultUI] ⚠️ 正在装备中，请稍候...');
+        return;
+    }
+    
+    $.Msg(`[VaultUI] 装备索引 ${index} 的装备`);
+    
+    // ⭐ 设置装备中状态
+    setIsEquipping(true);
+    
+    (GameEvents.SendCustomGameEventToServer as any)('equip_item_from_vault', {
+        PlayerID: Players.GetLocalPlayer(),
+        index: index
+    });
 
-        Game.EmitSound('ui.crafting_gem_create');
-        
-        // 装备后关闭确认框并刷新数据
-        setSelectedItem(null);
-        setHoveredItem(null);
-        
-
-    };
+    Game.EmitSound('ui.crafting_gem_create');
+    
+    // 装备后关闭确认框
+    setSelectedItem(null);
+    setHoveredItem(null);
+    
+    // ⭐ 1. 5 秒后解除锁定
+    setTimeout(() => {
+        setIsEquipping(false);
+        $. Msg('[VaultUI] 解除装备锁定');
+    }, 1500);
+};
 
     // 查找当前已装备的同类型装备
     const findEquippedItemByType = (itemType: string): ExternalRewardItem | null => {
@@ -683,22 +719,30 @@ const vaultListener = GameEvents.Subscribe('update_vault_ui', (data: any) => {
                         }}>
                             {/* 确认按钮 */}
                             <Button 
-                                onactivate={() => onEquipItem(selectedItem)}
-                                style={{
-                                    width: '100%',
-                                    height: '60px',
-                                    backgroundColor: '#4caf50',
-                                    marginBottom: '15px',
-                                }}
-                                onmouseover={(panel) => {
-                                    panel.style.backgroundColor = '#66bb6a';
-                                }}
-                                onmouseout={(panel) => {
-                                    panel.style.backgroundColor = '#4caf50';
-                                }}
-                            >
-                                <Label text="✔ 确认装备" style={{ fontSize: '26px', color: 'white', textAlign: 'center', fontWeight: 'bold' }} />
-                            </Button>
+    onactivate={() => onEquipItem(selectedItem)}
+    style={{
+        width: '100%',
+        height: '60px',
+        backgroundColor: isEquipping ? '#888888' : '#4caf50',  // ⭐ 装备中显示灰色
+        marginBottom: '15px',
+        opacity:isEquipping ? '0.5' : '1',  // ⭐ 装备中半透明
+    }}
+    onmouseover={(panel) => {
+        if (!isEquipping) {  // ⭐ 装备中不响应 hover
+            panel.style.backgroundColor = '#66bb6a';
+        }
+    }}
+    onmouseout={(panel) => {
+        if (!  isEquipping) {
+            panel.style.backgroundColor = '#4caf50';
+        }
+    }}
+>
+    <Label 
+        text={isEquipping ?  "⏳ 装备中..." : "✔ 确认装备"}  // ⭐ 动态文本
+        style={{ fontSize: '26px', color: 'white', textAlign: 'center', fontWeight: 'bold' }} 
+    />
+</Button>
                             
                             {/* 取消按钮 */}
                             <Button 
