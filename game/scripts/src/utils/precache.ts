@@ -69,6 +69,41 @@ export default function Precache(context: CScriptPrecacheContext) {
             // === 通用特效 ===
             'particles/generic_gameplay/generic_hit_blood.vpcf',
             'soundevents/game_sounds_heroes/game_sounds_earthshaker.vsndevts',
+// === 🆕 刷怪区域 - Boss模型（冥魂大帝）===
+'models/heroes/wraith_king/wraith_king. vmdl',
+'models/heroes/wraith_king/wraith_king_base.vmdl',
+'models/heroes/wraith_king/wraith_king_head.vmdl', 
+'models/heroes/wraith_king/wraith_king_weapon. vmdl',
+'models/heroes/wraith_king/wraith_king_legs.vmdl',
+'models/heroes/wraith_king/wraith_king_arms.vmdl',
+'models/heroes/wraith_king/wraith_king_shoulder.vmdl',
+'models/heroes/wraith_king/wraith_king_cape.vmdl',
+'particles/units/heroes/hero_wraith_king/wraith_king_hellfire_eruption.vpcf',
+'particles/units/heroes/hero_wraith_king/wraith_king_reincarnate.vpcf',
+'soundevents/game_sounds_heroes/game_sounds_wraith_king. vsndevts',
+
+// === 光环词条特效 ===
+'particles/generic_gameplay/generic_slowed_cold. vpcf',
+'particles/units/heroes/hero_huskar/huskar_burning_spear_debuff.vpcf',
+              // === 🆕 刷怪区域 - 词条系统特效 ===
+        // 护盾词条
+        'particles/items_fx/black_king_bar_avatar.vpcf',
+        // 召唤词条
+        'particles/units/heroes/hero_enigma/enigma_demonic_conversion.vpcf',
+        // 冰霜光环词条
+        'particles/units/heroes/hero_crystalmaiden/maiden_freezing_field_snow. vpcf',
+        // 燃烧光环词条
+        'particles/units/heroes/hero_ember_spirit/ember_spirit_flameguard.vpcf',
+        // 狂暴化词条
+        'particles/units/heroes/hero_huskar/huskar_berserkers_blood.vpcf',
+        // 不屈词条
+        'particles/units/heroes/hero_skeleton_king/skeleton_king_reincarnate.vpcf',
+        // 分裂词条
+        'particles/units/heroes/hero_broodmother/broodmother_spiderlings_spawn.vpcf',
+        // 通用词条光环
+        'particles/generic_gameplay/generic_buff.vpcf',
+        // 高词条/Boss出现特效
+        'particles/econ/events/ti10/portal/portal_open_good.vpcf',
         ],
         context
     );
@@ -90,6 +125,7 @@ export default function Precache(context: CScriptPrecacheContext) {
         [
             // 影魔Boss英雄单位
             'npc_dota_hero_nevermore',
+            'npc_dota_hero_skeleton_king'
         ],
         context
     );

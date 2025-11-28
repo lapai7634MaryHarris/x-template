@@ -13,11 +13,17 @@ import { ExternalRewardItem, ExternalItemType, EquipmentAttribute } from "./dung
 import { SimpleDungeon } from "./dungeon/simple_dungeon";
 import { EquipmentVaultSystem } from './systems/equipment_vault_system';
 import './modifiers/modifier_equipment_system';  // ⭐ 添加这一行
+import { ZoneDungeon } from "./zone/zone_dungeon";
 // 初始化模块
 if (IsServer()) {
     pcall(() => require('init_modifiers'));
 }
-
+declare global {
+    interface CDOTAGameRules {
+        SimpleDungeon?: SimpleDungeon;
+        ZoneDungeon?: ZoneDungeon;  // 新增
+    }
+}
 declare global {
     interface CDOTAGameRules {
         SimpleDungeon?: SimpleDungeon;
@@ -113,6 +119,8 @@ function ListenToDungeonSelection() {
             if (GameRules.SimpleDungeon) {
                 (GameRules.SimpleDungeon as any).StartDungeon(playerId, difficulty);
             }
+        
+            
             
             let difficultyText = "";
             if (difficulty === "easy") {
@@ -130,11 +138,15 @@ function ListenToDungeonSelection() {
             );
             
         } else if (dungeonType === "B") {
-            GameRules.SendCustomMessage(
-                `<font color='#FFAA00'>副本B开发中，敬请期待！</font>`,
-                playerId,
-                0
-            );
+           // 进入刷怪区域
+    if (GameRules.ZoneDungeon) {
+        GameRules.ZoneDungeon.EnterFromPortal(playerId, 0);
+                
+                0 } else { GameRules.SendCustomMessage(
+            `<font color='#FF0000'>❌ 刷怪区域系统未初始化</font>`,
+            playerId,
+            0
+            );}
         } else if (dungeonType === "C") {
             GameRules.SendCustomMessage(
                 `<font color='#FFAA00'>副本C开发中，敬请期待！</font>`,
@@ -486,7 +498,7 @@ Object.assign(getfenv(), {
         ActivateModules();
         RageSystem.Init();
         GameRules.SimpleDungeon = new SimpleDungeon();
-
+        GameRules.ZoneDungeon = new ZoneDungeon();
         dungeonPortalInstance = SpawnDungeonPortal();
         if (dungeonPortalInstance) {
             MonitorPortalTrigger();

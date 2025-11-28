@@ -30,25 +30,25 @@ dota_tooltip_ability_warrior_deep_wound_Description,,【被动】攻击暴击时
 dota_tooltip_ability_warrior_deep_wound_duration,,持续时间：
 dota_tooltip_ability_warrior_deep_wound_tick_rate,,伤害间隔：
 dota_tooltip_ability_warrior_deep_wound_pool_drain_rate,,伤害池消耗：
-
+,,
 dota_tooltip_ability_axe_giant_strike,,巨人打击
 dota_tooltip_ability_axe_giant_strike_Description,,[W] 消耗20怒气，对目标造成150%最大攻击力的物理伤害，5秒内使目标受到来自武器战士额外30%伤害。
 dota_tooltip_ability_axe_giant_strike_rage_cost,,怒气消耗：
 dota_tooltip_ability_axe_giant_strike_damage_multiplier,,伤害倍率：
 dota_tooltip_ability_axe_giant_strike_damage_amplify,,伤害增幅：
 dota_tooltip_ability_axe_giant_strike_duration,,持续时间：
-
+,,
 dota_tooltip_ability_warrior_thunder_strike,,雷霆一击
 dota_tooltip_ability_warrior_thunder_strike_Description,,[E] 重击地面，对自身周围300范围内所有敌人造成150%攻击力的魔法伤害，并附加重伤效果。
 dota_tooltip_ability_warrior_thunder_strike_radius,,范围：
 dota_tooltip_ability_warrior_thunder_strike_damage_pct,,伤害倍率：
-
+,,
 dota_tooltip_ability_warrior_execute,,斩杀
 dota_tooltip_ability_warrior_execute_Description,,[R] 消耗25怒气，对目标造成200%/250%/300%攻击力的物理伤害。若目标生命值低于15%/20%/25%，直接斩杀。
 dota_tooltip_ability_warrior_execute_rage_cost,,怒气消耗：
 dota_tooltip_ability_warrior_execute_execute_threshold,,斩杀阈值：
 dota_tooltip_ability_warrior_execute_damage_multiplier,,伤害倍率：
-
+,,
 dota_tooltip_ability_shadow_explosion,,暗影爆发
 dota_tooltip_ability_shadow_explosion_Description,,Boss吟唱1. 5秒后，向周围发射多个方向的暗影弹道（阶段1:4个 | 阶段2:8个 | 阶段3:16个），造成魔法伤害并眩晕。
 dota_tooltip_ability_shadow_explosion_projectile_speed,,弹道速度：
