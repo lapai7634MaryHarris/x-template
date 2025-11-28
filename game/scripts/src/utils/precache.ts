@@ -7,7 +7,7 @@ export default function Precache(context: CScriptPrecacheContext) {
             // === 雷霆一击（E 技能） ===
             'particles/units/heroes/hero_brewmaster/brewmaster_thunder_clap.vpcf',
             'particles/units/heroes/hero_zuus/zuus_lightning_bolt.vpcf',
-            'soundevents/game_sounds_heroes/game_sounds_brewmaster. vsndevts',
+            'soundevents/game_sounds_heroes/game_sounds_brewmaster.vsndevts',
             'soundevents/game_sounds_heroes/game_sounds_zuus.vsndevts',
             
             // === 重伤（先天技能） ===
@@ -39,7 +39,7 @@ export default function Precache(context: CScriptPrecacheContext) {
             'models/heroes/shadow_fiend/shadow_fiend_arms.vmdl',
             
             // === 影魔Boss - 技能粒子 ===
-            'particles/units/heroes/hero_nevermore/nevermore_shadowraze. vpcf',
+            'particles/units/heroes/hero_nevermore/nevermore_shadowraze.vpcf',
             'particles/units/heroes/hero_nevermore/nevermore_shadowraze_a.vpcf',
             'particles/units/heroes/hero_nevermore/nevermore_necro_souls.vpcf',
             'particles/units/heroes/hero_nevermore/nevermore_base_attack.vpcf',
@@ -53,7 +53,7 @@ export default function Precache(context: CScriptPrecacheContext) {
             'models/items/nevermore/demon_eater/demon_eater_head.vmdl',
             'models/items/nevermore/demon_eater/demon_eater_arms.vmdl',
             'models/items/nevermore/demon_eater/demon_eater_shoulders.vmdl',
-            'particles/econ/items/shadow_fiend/sf_fire_arcana/sf_fire_arcana_ambient. vpcf',
+            'particles/econ/items/shadow_fiend/sf_fire_arcana/sf_fire_arcana_ambient.vpcf',
             
             'models/props_gameplay/team_portal/team_portal.vmdl',// 传送门模型
            
@@ -62,28 +62,33 @@ export default function Precache(context: CScriptPrecacheContext) {
             'particles/econ/items/shadow_fiend/sf_arms_of_desolation/sf_desolation_ambient_flame_column.vpcf',
             
             // === 影魔Boss - 音效 ===
-            'soundevents/game_sounds_heroes/game_sounds_nevermore. vsndevts',
-            'soundevents/game_sounds_heroes/game_sounds_phoenix. vsndevts',
+            'soundevents/game_sounds_heroes/game_sounds_nevermore.vsndevts',
+            'soundevents/game_sounds_heroes/game_sounds_phoenix.vsndevts',
             'soundevents/game_sounds_heroes/game_sounds_ursa.vsndevts',
             
             // === 通用特效 ===
             'particles/generic_gameplay/generic_hit_blood.vpcf',
             'soundevents/game_sounds_heroes/game_sounds_earthshaker.vsndevts',
-// === 🆕 刷怪区域 - Boss模型（冥魂大帝）===
-'models/heroes/wraith_king/wraith_king. vmdl',
+// === 冥魂大帝 Boss - 完整模型 ===
+'models/heroes/wraith_king/wraith_king.vmdl',
 'models/heroes/wraith_king/wraith_king_base.vmdl',
-'models/heroes/wraith_king/wraith_king_head.vmdl', 
-'models/heroes/wraith_king/wraith_king_weapon. vmdl',
+'models/heroes/wraith_king/wraith_king_head.vmdl',
+'models/heroes/wraith_king/wraith_king_weapon.vmdl',
 'models/heroes/wraith_king/wraith_king_legs.vmdl',
 'models/heroes/wraith_king/wraith_king_arms.vmdl',
 'models/heroes/wraith_king/wraith_king_shoulder.vmdl',
 'models/heroes/wraith_king/wraith_king_cape.vmdl',
-'particles/units/heroes/hero_wraith_king/wraith_king_hellfire_eruption.vpcf',
-'particles/units/heroes/hero_wraith_king/wraith_king_reincarnate.vpcf',
-'soundevents/game_sounds_heroes/game_sounds_wraith_king. vsndevts',
+'models/heroes/wraith_king/wraith_king_armor.vmdl',
+
+// === 冥魂大帝 - 粒子特效 ===
+'particles/units/heroes/hero_skeletonking/skeletonking_ambient.vpcf',
+//'particles/units/heroes/hero_skeletonking/skeletonking_sword_ambient.vpcf',
+//'particles/units/heroes/hero_skeletonking/wraith_king_hellfire_eruption.vpcf',
+// === 冥魂大帝 - 音效 ===
+'soundevents/game_sounds_heroes/game_sounds_skeletonking.vsndevts',
 
 // === 光环词条特效 ===
-'particles/generic_gameplay/generic_slowed_cold. vpcf',
+'particles/generic_gameplay/generic_slowed_cold.vpcf',
 'particles/units/heroes/hero_huskar/huskar_burning_spear_debuff.vpcf',
               // === 🆕 刷怪区域 - 词条系统特效 ===
         // 护盾词条
@@ -91,13 +96,13 @@ export default function Precache(context: CScriptPrecacheContext) {
         // 召唤词条
         'particles/units/heroes/hero_enigma/enigma_demonic_conversion.vpcf',
         // 冰霜光环词条
-        'particles/units/heroes/hero_crystalmaiden/maiden_freezing_field_snow. vpcf',
+        'particles/units/heroes/hero_crystalmaiden/maiden_freezing_field_snow.vpcf',
         // 燃烧光环词条
         'particles/units/heroes/hero_ember_spirit/ember_spirit_flameguard.vpcf',
         // 狂暴化词条
         'particles/units/heroes/hero_huskar/huskar_berserkers_blood.vpcf',
         // 不屈词条
-        'particles/units/heroes/hero_skeleton_king/skeleton_king_reincarnate.vpcf',
+        'particles/units/heroes/hero_skeletonking/skeleton_king_reincarnate.vpcf',
         // 分裂词条
         'particles/units/heroes/hero_broodmother/broodmother_spiderlings_spawn.vpcf',
         // 通用词条光环

@@ -13,7 +13,7 @@ import {
     PARTY_SCALING,
     MONSTER_SCORE,
 } from "./zone_config";
-
+import { ZoneLootSystem,LOOT_ITEMS } from "./zone_loot";
 interface ZonePlayer {
     playerId: PlayerID;
     hero: CDOTA_BaseNPC_Hero;
@@ -48,11 +48,43 @@ export class ZoneDungeon {
         }, this);
     }
     
+    private ShowInventory(playerId: PlayerID): void {
+    const inventory = ZoneLootSystem. GetInventory(playerId);
+    
+    if (inventory. size === 0) {
+        GameRules.SendCustomMessage("<font color='#888888'>背包是空的</font>", playerId, 0);
+        return;
+    }
+    
+    GameRules.SendCustomMessage("<font color='#FFD700'>===== 背包 =====</font>", playerId, 0);
+    
+    inventory.forEach((count, itemType) => {
+        const config = LOOT_ITEMS[itemType];
+        GameRules.SendCustomMessage(
+            `<font color='${config. color}'>${config. name}: ${count}</font>`,
+            playerId,
+            0
+        );
+    });
+}
     private ListenToChatCommands(): void {
         ListenToGameEvent("player_chat", (event) => {
             const text = event.text. trim(). toLowerCase();
             const playerId = event.playerid as PlayerID;
             
+            // 查看背包命令
+           if (text === "-bag" || text === "-b") {
+               this.ShowInventory(playerId);
+           }
+           
+           
+           // 测试掉落命令
+           if (text === "-testdrop") {
+               ZoneLootSystem. ProcessLoot("boss", [playerId], 2.0);
+               GameRules.SendCustomMessage("<font color='#00FF00'>测试掉落已发放！</font>", playerId, 0);
+           }
+           
+
             // 测试命令：-zone 或 -z 进入刷怪区域
             if (text === "-zone" || text === "-z") {
                 this.TryEnterZone(playerId, 0);
@@ -69,6 +101,7 @@ export class ZoneDungeon {
                 this.TryRejoin(playerId);
             }
         }, this);
+        
     }
     
     // ==================== 公开接口（供传送门调用）====================
@@ -379,7 +412,7 @@ private SpawnMonster(type: "normal" | "elite" | "boss", position?: Vector): CDOT
     if (type === "elite") {
         unitName = "npc_dota_creep_badguys_ranged";
     } else if (type === "boss") {
-        unitName = "npc_dota_hero_wraith_king";  // 🔧 冥魂大帝
+        unitName = "npc_dota_hero_skeleton_king";
     }
     
     const monster = CreateUnitByName(
@@ -392,27 +425,32 @@ private SpawnMonster(type: "normal" | "elite" | "boss", position?: Vector): CDOT
     );
     
     if (monster) {
-        // 标记怪物类型
         (monster as any).zoneMonsterType = type;
         
-        // 🔧 先设置基础体型（精英2倍，Boss2倍）
         if (type === "elite") {
             monster.SetModelScale(2.0);
-        } else if (type === "boss") {
-            monster.SetModelScale(2.0);
-        }
-        
-        // 应用基础属性缩放
-        this.ApplyMonsterScaling(monster, type);
-        
-        // 为精英和Boss生成并应用词条
-        if (type === "elite" || type === "boss") {
+            this.ApplyMonsterScaling(monster, type);
+            
             const affixes = AffixSystem.GenerateAffixes(type);
             AffixSystem.ApplyAffixes(monster, affixes);
             
             const affixText = AffixSystem.GetAffixDisplayText(affixes);
-            const typeName = type === "elite" ? "精英怪" : "Boss";
-            this.BroadcastMessage(`${typeName} ${affixText}`, "#FFFFFF");
+            this.BroadcastMessage(`精英怪 ${affixText}`, "#FFFFFF");
+            
+        } else if (type === "boss") {
+            monster.SetModelScale(2.0);
+            
+            // 🔧 Boss 单独设置固定属性，不走疯狂的倍率系统
+            this.SetupBossStats(monster);
+            
+            // 词条还是可以加，但不叠加属性
+            const affixes = AffixSystem.GenerateAffixes(type);
+            // 只显示词条名称，不应用属性加成
+            const affixText = AffixSystem.GetAffixDisplayText(affixes);
+            this.BroadcastMessage(`Boss ${affixText}`, "#FF0000");
+            
+        } else {
+            this.ApplyMonsterScaling(monster, type);
         }
         
         this.monsters.push(monster);
@@ -430,6 +468,52 @@ private SpawnMonster(type: "normal" | "elite" | "boss", position?: Vector): CDOT
     }
     
     return monster;
+}
+
+// 🆕 新增函数：设置 Boss 固定属性
+private SetupBossStats(boss: CDOTA_BaseNPC): void {
+    Timers.CreateTimer(0.2, () => {
+        if (!IsValidEntity(boss)) return undefined;
+        
+        if (boss.IsHero()) {
+            const hero = boss as CDOTA_BaseNPC_Hero;
+            
+            // 🔧 固定属性，不叠加任何倍率
+            hero.SetBaseStrength(150);       // 约 3300 血量
+            hero. SetBaseAgility(10);         // 一点攻击力
+            hero.SetBaseIntellect(20);
+            
+            // 🔧 关键：强制设置护甲
+            hero.SetPhysicalArmorBaseValue(10);  // 固定 10 护甲
+            
+            // 额外增加血量到目标值
+            const targetHealth = 15000;  // 目标血量
+            Timers.CreateTimer(0.1, () => {
+                if (! IsValidEntity(hero)) return undefined;
+                
+                const currentMax = hero.GetMaxHealth();
+                if (currentMax < targetHealth) {
+                    const extraStr = Math.floor((targetHealth - currentMax) / 22);
+                    hero. ModifyStrength(extraStr);
+                }
+                
+                // 再次强制设置护甲（加完力量后护甲会变）
+                hero.SetPhysicalArmorBaseValue(10);
+                
+                hero.SetHealth(hero.GetMaxHealth());
+                
+                // 设置攻击力
+                hero.SetBaseDamageMin(200);
+                hero. SetBaseDamageMax(250);
+                
+                print(`[ZoneDungeon] Boss 设置完成: 血量=${hero.GetMaxHealth()}, 护甲=${hero.GetPhysicalArmorValue(false)}, 攻击=${hero.GetBaseDamageMax()}`);
+                
+                return undefined;
+            });
+        }
+        
+        return undefined;
+    });
 }
     
     private GetRandomPosition(): Vector {
@@ -480,59 +564,97 @@ private ApplyMonsterScaling(monster: CDOTA_BaseNPC, type: string): void {
     // Boss大幅加成
     else if (type === "boss") {
         healthMult *= 50.0;
-        damageMult *= 10.0;
+        damageMult *= 3.0;
     }
     
     // 🔧 延迟应用
     Timers.CreateTimer(0.1, () => {
         if (!IsValidEntity(monster)) return undefined;
         
-        const isHero = monster.IsHero();
+         const isHero = monster.IsHero();
+    
+    // === 生命值 ===
+    if (isHero) {
+        const hero = monster as CDOTA_BaseNPC_Hero;
         
-        // === 生命值 ===
-        if (isHero) {
-            const hero = monster as CDOTA_BaseNPC_Hero;
-            const currentHealth = hero.GetMaxHealth();
-            const targetHealth = Math.floor(currentHealth * healthMult);
-            const healthDiff = targetHealth - currentHealth;
-            const strNeeded = Math. floor(healthDiff / 22);
+        // 🆕 Boss 直接设置固定属性，避免数值爆炸
+        if (type === "boss") {
+            hero.SetBaseStrength(800);      // 固定力量 = 约1760血量
+            hero.SetBaseAgility(20);       // 固定敏捷
+            hero.SetBaseIntellect(10);     // 固定智力
+            hero.SetPhysicalArmorBaseValue(5);  // 🔧 固定5点护甲
             
-            if (strNeeded > 0) {
-                hero.ModifyStrength(strNeeded);
-                print(`[ZoneDungeon] ${type} 增加力量 ${strNeeded} 点`);
+            // 设置额外生命值
+            const targetHealth = 8000 * healthMult;  // 基础8000血 * 倍率
+            const currentMax = hero.GetMaxHealth();
+            if (targetHealth > currentMax) {
+                const extraStr = Math.floor((targetHealth - currentMax) / 22);
+                hero. ModifyStrength(extraStr);
             }
             
-            // 满血
+            hero.SetHealth(hero.GetMaxHealth());
+            
+            // 🔧 再次强制设置护甲（属性加完后）
             Timers.CreateTimer(0.1, () => {
                 if (IsValidEntity(hero)) {
-                    hero.SetHealth(hero.GetMaxHealth());
+                    hero.SetPhysicalArmorBaseValue(5);  // 保持5点护甲
+                    print(`[ZoneDungeon] Boss 最终护甲: ${hero.GetPhysicalArmorValue(false)}`);
                 }
                 return undefined;
             });
+            
         } else {
-            const baseHealth = monster.GetMaxHealth();
-            const newHealth = Math. floor(baseHealth * healthMult);
-            monster.SetBaseMaxHealth(newHealth);
-            monster. SetMaxHealth(newHealth);
-            monster.SetHealth(newHealth);
+            // 精英怪保持原逻辑
+            const currentHealth = hero.GetMaxHealth();
+            const targetHealth = Math.floor(currentHealth * healthMult);
+            const healthDiff = targetHealth - currentHealth;
+            const strNeeded = Math.floor(healthDiff / 22);
+            
+            if (strNeeded > 0) {
+                hero.ModifyStrength(strNeeded);
+            }
         }
         
-        // === 攻击力 ===
-        if (isHero) {
-            const hero = monster as CDOTA_BaseNPC_Hero;
+        Timers.CreateTimer(0.1, () => {
+            if (IsValidEntity(hero)) {
+                hero.SetHealth(hero.GetMaxHealth());
+            }
+            return undefined;
+        });
+        
+    } else {
+        // 普通单位逻辑不变
+        const baseHealth = monster.GetMaxHealth();
+        const newHealth = Math.floor(baseHealth * healthMult);
+        monster.SetBaseMaxHealth(newHealth);
+        monster.SetMaxHealth(newHealth);
+        monster.SetHealth(newHealth);
+    }
+    
+    // === 攻击力 ===
+    if (isHero) {
+        const hero = monster as CDOTA_BaseNPC_Hero;
+        
+        // 🆕 Boss 设置固定攻击力
+        if (type === "boss") {
+            const targetDamage = Math.floor(150 * damageMult);  // 基础150攻击
+            hero.SetBaseDamageMin(targetDamage);
+            hero. SetBaseDamageMax(targetDamage + 30);
+        } else {
             const bonusDamage = Math.floor(100 * damageMult);
             hero.ModifyAgility(bonusDamage);
-            print(`[ZoneDungeon] ${type} 增加敏捷 ${bonusDamage} 点`);
-        } else {
-            const baseDamage = monster. GetBaseDamageMax();
-            monster. SetBaseDamageMin(Math.floor(baseDamage * damageMult));
-            monster. SetBaseDamageMax(Math.floor(baseDamage * damageMult));
         }
         
-        print(`[ZoneDungeon] ${type} 基础缩放完成: 生命倍率=${healthMult}, 攻击倍率=${damageMult}`);
-        
-        return undefined;
-    });
+    } else {
+        const baseDamage = monster.GetBaseDamageMax();
+        monster.SetBaseDamageMin(Math.floor(baseDamage * damageMult));
+        monster.SetBaseDamageMax(Math.floor(baseDamage * damageMult));
+    }
+    
+    print(`[ZoneDungeon] ${type} 缩放完成: 生命倍率=${healthMult}, 攻击倍率=${damageMult}`);
+    
+    return undefined;
+});
 }
     
     private GetTimeMultiplier(): number {
@@ -558,7 +680,7 @@ private OnEntityKilled(event: EntityKilledEvent): void {
     if (!killedUnit) return;
     
     // 检查是否是玩家死亡
-    if (killedUnit. IsRealHero()) {
+    if (killedUnit. IsRealHero() && killedUnit. GetTeam() === DotaTeam.GOODGUYS) {
         this.OnPlayerDeath(killedUnit as CDOTA_BaseNPC_Hero);
         return;
     }
@@ -566,47 +688,82 @@ private OnEntityKilled(event: EntityKilledEvent): void {
     // 检查是否是我们的怪物
     const index = this.monsters.indexOf(killedUnit);
     if (index === -1) {
-        // 可能是分裂/召唤的小怪，也给积分
         if ((killedUnit as any).isSplitling || (killedUnit as any).isSummonedMinion) {
             this.teamScore += 1;
-            print(`[ZoneDungeon] 击杀召唤物/分裂物，积分 +1，总积分：${this.teamScore}`);
+            
+            // 🆕 分裂物/召唤物也有少量掉落
+            const playerIds = Array.from(this. players.keys());
+            ZoneLootSystem. ProcessLoot("normal", playerIds, 0.5);
         }
         return;
     }
     
     // 移除怪物
-    this.monsters.splice(index, 1);
+    this.monsters. splice(index, 1);
     
-    // 获取怪物类型和积分
-    const monsterType = (killedUnit as any). zoneMonsterType as "normal" | "elite" | "boss" || "normal";
+    const monsterType = (killedUnit as any).zoneMonsterType as "normal" | "elite" | "boss" || "normal";
     const score = MONSTER_SCORE[monsterType] || 1;
     
-    // 🆕 处理词条系统（清理、分裂等）
+    // 处理词条系统
     const affixes = AffixSystem.OnMonsterDeath(killedUnit);
     
-    // 增加队伍积分
+    // 🆕 计算掉落加成
+    let dropBonus = 1.0;
+    if (affixes && affixes.length > 0) {
+        dropBonus = AffixSystem.GetDropBonus(affixes);  // 每个词条 +20%
+    }
+    
+    // 🆕 处理掉落 - 为所有玩家独立计算
+    const playerIds = Array.from(this.players. keys());
+    ZoneLootSystem. ProcessLoot(monsterType, playerIds, dropBonus);
+    
+    // 清理怪物特效
+    this.CleanupMonsterEffects(killedUnit);
+    
     this.teamScore += score;
     
-    // 🆕 显示击杀信息（包含词条）
-    if (affixes && affixes.length > 0) {
+    if (affixes && affixes. length > 0) {
         const affixText = AffixSystem.GetAffixDisplayText(affixes);
         const typeName = monsterType === "elite" ? "精英怪" : "Boss";
-        const dropBonus = AffixSystem.GetDropBonus(affixes);
-        
         this.BroadcastMessage(
             `击杀 ${typeName} ${affixText}，积分 +${score}，掉落加成 x${dropBonus. toFixed(1)}`,
             "#FFD700"
         );
-        
-        print(`[ZoneDungeon] 击杀 ${monsterType} ${affixes.length}词条，积分 +${score}，总积分：${this.teamScore}`);
-    } else {
-        print(`[ZoneDungeon] 击杀 ${monsterType}，积分 +${score}，总积分：${this. teamScore}`);
     }
     
-    // 检查是否触发精英/Boss
     this.CheckScoreTrigger();
+}
+
+// 🆕 新增函数：清理怪物所有特效
+private CleanupMonsterEffects(monster: CDOTA_BaseNPC): void {
+    // 🔧 手动清理所有可能的特效
+    const particleKeys = [
+        'affixParticle',
+        'frozenAuraParticle', 
+        'burnAuraParticle',
+        'enrageParticle',
+        'shieldParticle',
+        'bossParticle'
+    ];
     
-    // TODO: 处理掉落（使用 dropBonus）
+    for (const key of particleKeys) {
+        const particle = (monster as any)[key];
+        if (particle !== undefined && particle !== null) {
+            ParticleManager.DestroyParticle(particle, true);
+            ParticleManager.ReleaseParticleIndex(particle);
+            (monster as any)[key] = null;
+        }
+    }
+    
+    // 🔧 英雄单位延迟移除尸体
+    if (monster.IsHero()) {
+        Timers.CreateTimer(2.0, () => {
+            if (IsValidEntity(monster)) {
+                UTIL_Remove(monster);
+            }
+            return undefined;
+        });
+    }
 }
     
 private CheckScoreTrigger(): void {
@@ -651,7 +808,7 @@ private CheckScoreTrigger(): void {
     // 播放音效给所有玩家
     for (const [, player] of this. players) {
         if (player.hero && IsValidEntity(player.hero)) {
-            EmitSoundOn("Hero_WraithKing. Hellfire", player.hero);
+            EmitSoundOn("Hero_WraithKing.Hellfire", player.hero);
         }
     }
     

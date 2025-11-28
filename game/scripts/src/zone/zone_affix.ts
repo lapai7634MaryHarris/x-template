@@ -489,8 +489,8 @@ case AffixType.BURNING_AURA:
         );
         
         for (const enemy of enemies) {
-            // 🔧 伤害提高到50
-            const damage = 50;
+            // 🔧 伤害提高到500  
+            const damage = 500;
             ApplyDamage({
                 victim: enemy,
                 attacker: monster,
@@ -579,69 +579,85 @@ case AffixType.BURNING_AURA:
     /**
      * 添加视觉效果
      */
-    private static ApplyVisualEffects(monster: CDOTA_BaseNPC, affixes: AffixType[]): void {
-        // 根据词条数量选择特效颜色
-        const affixCount = affixes.length;
-        let particlePath: string;
-        
-        if (affixCount >= 5) {
-            // 5+词条：金色特效
-            particlePath = "particles/econ/events/ti10/portal/portal_open_good.vpcf";
-        } else if (affixCount >= 3) {
-            // 3-4词条：紫色特效
-            particlePath = "particles/items2_fx/smoke_of_deceit_buff.vpcf";
-        } else {
-            // 1-2词条：普通特效
-            particlePath = "particles/generic_gameplay/generic_buff.vpcf";
-        }
-        
-        const particle = ParticleManager.CreateParticle(
-            particlePath,
-            ParticleAttachment.ABSORIGIN_FOLLOW,
-            monster
-        );
-        ParticleManager.SetParticleControl(particle, 0, monster.GetAbsOrigin());
-        
-        // 存储特效索引以便清理
-        (monster as any).affixParticle = particle;
+   private static ApplyVisualEffects(monster: CDOTA_BaseNPC, affixes: AffixType[]): void {
+    const affixCount = affixes.length;
+    let particlePath: string;
+    
+    if (affixCount >= 5) {
+        particlePath = "particles/items2_fx/smoke_of_deceit_buff.vpcf";  // 🔧 用确定存在的特效
+    } else if (affixCount >= 3) {
+        particlePath = "particles/items2_fx/smoke_of_deceit_buff.vpcf";
+    } else {
+        particlePath = "particles/items2_fx/smoke_of_deceit_buff.vpcf";
     }
     
-    /**
-     * 处理怪物死亡
-     */
-    public static OnMonsterDeath(monster: CDOTA_BaseNPC): AffixType[] | undefined {
-        const entityIndex = monster. GetEntityIndex();
-        const affixes = this.monsterAffixes. get(entityIndex);
-        
-        if (!affixes) return undefined;
-        
-        // 清理计时器
-        const timers = this. monsterTimers. get(entityIndex);
-        if (timers) {
-            for (const timer of timers) {
-                Timers. RemoveTimer(timer);
-            }
+    const particle = ParticleManager.CreateParticle(
+        particlePath,
+        ParticleAttachment. ABSORIGIN_FOLLOW,
+        monster
+    );
+    ParticleManager.SetParticleControl(particle, 0, monster. GetAbsOrigin());
+    
+    // 🔧 保存特效索引
+    (monster as any).affixParticle = particle;
+}
+    
+   /**
+ * 处理怪物死亡
+ */
+public static OnMonsterDeath(monster: CDOTA_BaseNPC): AffixType[] | undefined {
+    const entityIndex = monster.GetEntityIndex();
+    const affixes = this.monsterAffixes. get(entityIndex);
+    
+    if (!affixes) return undefined;
+    
+    // 🔧 清理所有计时器
+    const timers = this.monsterTimers.get(entityIndex);
+    if (timers) {
+        for (const timer of timers) {
+            Timers.RemoveTimer(timer);
         }
-        
-        // 清理特效
-        const particle = (monster as any).affixParticle;
+    }
+    
+    // 🔧 清理所有特效
+    const particlesToClean = [
+        'affixParticle',
+        'frozenAuraParticle',
+        'burnAuraParticle', 
+        'enrageParticle',
+        'shieldParticle'
+    ];
+    
+    for (const particleName of particlesToClean) {
+        const particle = (monster as any)[particleName];
         if (particle) {
-            ParticleManager.DestroyParticle(particle, false);
+            ParticleManager.DestroyParticle(particle, true);  // true = 立即销毁
             ParticleManager.ReleaseParticleIndex(particle);
         }
-        
-        // 处理分裂词条
-        if (affixes.includes(AffixType.SPLITTING)) {
-            this.HandleSplitting(monster);
-        }
-        
-        // 清理数据
-        this. monsterAffixes.delete(entityIndex);
-        this. monsterTimers. delete(entityIndex);
-        this.undyingTriggered.delete(entityIndex);
-        
-        return affixes;
     }
+    
+    // 处理分裂词条
+    if (affixes.includes(AffixType. SPLITTING)) {
+        this.HandleSplitting(monster);
+    }
+    
+    // 🔧 英雄单位：延迟移除尸体
+    if (monster.IsHero()) {
+        Timers.CreateTimer(2.0, () => {
+            if (IsValidEntity(monster)) {
+                UTIL_Remove(monster);  // 彻底移除
+            }
+            return undefined;
+        });
+    }
+    
+    // 清理数据
+    this. monsterAffixes.delete(entityIndex);
+    this. monsterTimers. delete(entityIndex);
+    this.undyingTriggered.delete(entityIndex);
+    
+    return affixes;
+}
     
     /**
      * 处理不屈词条（在伤害时调用）

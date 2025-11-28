@@ -336,7 +336,7 @@ if (selectedDungeon === "A") {
                     marginBottom: '10px',
                     padding: '15px',
                 }} onactivate={() => selectDungeon('B')}>
-                    <Label text="副本 B (开发中)" style={{ fontSize: '28px', color: '#ffffff' }} />
+                    <Label text="副本 B (测试开放)" style={{ fontSize: '28px', color: '#ffffff' }} />
                 </Panel>
                 
                 {/* 关闭按钮 */}

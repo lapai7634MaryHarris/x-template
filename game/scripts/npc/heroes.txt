@@ -28,7 +28,7 @@
 		"Ability16" "warrior_deep_wound"
 		"Ability17" "warrior_deep_wound"
 		"Ability18" "warrior_deep_wound"
-		"ArmorPhysical" "0"
+		"ArmorPhysical" "100"
 		"MagicalResistance" "0"
 		"AttackCapabilities" "DOTA_UNIT_CAP_MELEE_ATTACK"
 		"BaseAttackSpeed" "200"
