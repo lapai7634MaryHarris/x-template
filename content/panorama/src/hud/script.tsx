@@ -14,11 +14,13 @@ import { RageBar } from './rage_bar/rage_bar';
 import { setKeyDownCallback, useKeyPressed } from '../hooks/useKeyboard';
 import { registerCustomKey } from '../utils/keybinding';
 import { EquipmentUI } from './equipment_ui';
-import { MaterialsUI } from './materials_ui'; // 添加导入   
+import { MaterialsUI } from './materials_ui';
+import { ClassSelection } from './class_selection';  // ⭐ 新增导入
+
 registerCustomKey('D');
 registerCustomKey('F');
-registerCustomKey('B');  // ⭐ 新增：注册 B 键打开仓库
-registerCustomKey('C');  // ⭐ 新增：注册 C 键打开装备界面
+registerCustomKey('B');
+registerCustomKey('C');
 
 
 // 副本菜单组件
@@ -43,11 +45,11 @@ const DungeonMenu: FC<{ visible: boolean; onClose: () => void }> = ({ visible, o
     };
 
     const selectDifficulty = (difficulty: string) => {
-        $. Msg(`[DungeonMenu] 选择难度: ${difficulty}`);
+        $.Msg(`[DungeonMenu] 选择难度: ${difficulty}`);
         
         // @ts-ignore
         GameEvents.SendCustomGameEventToServer('select_dungeon', {
-            PlayerID: Players.GetLocalPlayer(),
+            PlayerID: Players. GetLocalPlayer(),
             dungeon_type: selectedDungeon,
             difficulty: difficulty
         });
@@ -57,238 +59,238 @@ const DungeonMenu: FC<{ visible: boolean; onClose: () => void }> = ({ visible, o
     };
 
     const goBack = () => {
-        $. Msg('[DungeonMenu] 返回');
+        $.Msg('[DungeonMenu] 返回');
         setSelectedDungeon(null);
     };
 
-    if (! visible) return null;
+    if (!visible) return null;
 
     $. Msg(`[DungeonMenu] 渲染，selectedDungeon = ${selectedDungeon}`);
 
     // 难度选择界面
-if (selectedDungeon === "A") {
-    $. Msg('[DungeonMenu] 渲染难度选择界面');
-    
-    return (
-        <Panel style={{
-            width: '100%',
-            height: '100%',
-            align: 'center center',
-            zIndex: 10000,
-            backgroundColor: '#000000dd',
-        }}>
+    if (selectedDungeon === "A") {
+        $. Msg('[DungeonMenu] 渲染难度选择界面');
+        
+        return (
             <Panel style={{
-                width: '900px',
-                height: '650px',
-                backgroundColor: '#1a1a2edd',
-                border: '3px solid #ffd700',
-                padding: '20px',
-                flowChildren: 'down',
+                width: '100%',
+                height: '100%',
+                align: 'center center',
+                zIndex: 10000,
+                backgroundColor: '#000000dd',
             }}>
-                <Label text="选择难度" style={{ 
-                    fontSize: '42px', 
-                    color: '#ffd700', 
-                    textAlign: 'center', 
-                    marginBottom: '20px' 
-                }} />
-                
-                {/* 简单难度 */}
-                <Label text="简单" style={{ 
-                    fontSize: '32px', 
-                    color: '#00ff00', 
-                    marginBottom: '10px',
-                    marginTop: '10px'
-                }} />
-                <Panel style={{ flowChildren: 'right', marginBottom: '15px', width: '100%' }}>
-                    <Panel style={{ 
-                        width: '280px', 
-                        height: '70px', 
-                        backgroundColor: '#00ff0088', 
-                        border: '2px solid #00ff00',
-                        marginRight: '10px', 
-                        verticalAlign: 'center',
-                        horizontalAlign: 'center'
-                    }} onactivate={() => selectDifficulty('easy_1')}>
-                        <Label text="1 星" style={{ 
-                            fontSize: '32px', 
-                            color: '#ffffff',
-                            horizontalAlign: 'center',
-                            verticalAlign: 'center'
-                        }} />
-                    </Panel>
-                    <Panel style={{ 
-                        width: '280px', 
-                        height: '70px', 
-                        backgroundColor: '#00ff00aa', 
-                        border: '2px solid #00ff00',
-                        marginRight: '10px',
-                        verticalAlign: 'center',
-                        horizontalAlign: 'center'
-                    }} onactivate={() => selectDifficulty('easy_2')}>
-                        <Label text="2 星" style={{ 
-                            fontSize: '32px', 
-                            color: '#ffffff',
-                            horizontalAlign: 'center',
-                            verticalAlign: 'center'
-                        }} />
-                    </Panel>
-                    <Panel style={{ 
-                        width: '280px', 
-                        height: '70px', 
-                        backgroundColor: '#00ff00cc', 
-                        border: '2px solid #00ff00',
-                        verticalAlign: 'center',
-                        horizontalAlign: 'center'
-                    }} onactivate={() => selectDifficulty('easy_3')}>
-                        <Label text="3 星" style={{ 
-                            fontSize: '32px', 
-                            color: '#ffffff',
-                            horizontalAlign: 'center',
-                            verticalAlign: 'center'
-                        }} />
-                    </Panel>
-                </Panel>
-                
-                {/* 普通难度 */}
-                <Label text="普通" style={{ 
-                    fontSize: '32px', 
-                    color: '#ffaa00', 
-                    marginBottom: '10px',
-                    marginTop: '10px'
-                }} />
-                <Panel style={{ flowChildren: 'right', marginBottom: '15px', width: '100%' }}>
-                    <Panel style={{ 
-                        width: '280px', 
-                        height: '70px', 
-                        backgroundColor: '#ffaa0088', 
-                        border: '2px solid #ffaa00',
-                        marginRight: '10px',
-                        verticalAlign: 'center',
-                        horizontalAlign: 'center'
-                    }} onactivate={() => selectDifficulty('normal_1')}>
-                        <Label text="1 星" style={{ 
-                            fontSize: '32px', 
-                            color: '#ffffff',
-                            horizontalAlign: 'center',
-                            verticalAlign: 'center'
-                        }} />
-                    </Panel>
-                    <Panel style={{ 
-                        width: '280px', 
-                        height: '70px', 
-                        backgroundColor: '#ffaa00aa', 
-                        border: '2px solid #ffaa00',
-                        marginRight: '10px',
-                        verticalAlign: 'center',
-                        horizontalAlign: 'center'
-                    }} onactivate={() => selectDifficulty('normal_2')}>
-                        <Label text="2 星" style={{ 
-                            fontSize: '32px', 
-                            color: '#ffffff',
-                            horizontalAlign: 'center',
-                            verticalAlign: 'center'
-                        }} />
-                    </Panel>
-                    <Panel style={{ 
-                        width: '280px', 
-                        height: '70px', 
-                        backgroundColor: '#ffaa00cc', 
-                        border: '2px solid #ffaa00',
-                        verticalAlign: 'center',
-                        horizontalAlign: 'center'
-                    }} onactivate={() => selectDifficulty('normal_3')}>
-                        <Label text="3 星" style={{ 
-                            fontSize: '32px', 
-                            color: '#ffffff',
-                            horizontalAlign: 'center',
-                            verticalAlign: 'center'
-                        }} />
-                    </Panel>
-                </Panel>
-                
-                {/* 困难难度 */}
-                <Label text="困难" style={{ 
-                    fontSize: '32px', 
-                    color: '#ff0000', 
-                    marginBottom: '10px',
-                    marginTop: '10px'
-                }} />
-                <Panel style={{ flowChildren: 'right', marginBottom: '15px', width: '100%' }}>
-                    <Panel style={{ 
-                        width: '280px', 
-                        height: '70px', 
-                        backgroundColor: '#ff000088', 
-                        border: '2px solid #ff0000',
-                        marginRight: '10px',
-                        verticalAlign: 'center',
-                        horizontalAlign: 'center'
-                    }} onactivate={() => selectDifficulty('hard_1')}>
-                        <Label text="1 星" style={{ 
-                            fontSize: '32px', 
-                            color: '#ffffff',
-                            horizontalAlign: 'center',
-                            verticalAlign: 'center'
-                        }} />
-                    </Panel>
-                    <Panel style={{ 
-                        width: '280px', 
-                        height: '70px', 
-                        backgroundColor: '#ff0000aa', 
-                        border: '2px solid #ff0000',
-                        marginRight: '10px',
-                        verticalAlign: 'center',
-                        horizontalAlign: 'center'
-                    }} onactivate={() => selectDifficulty('hard_2')}>
-                        <Label text="2 星" style={{ 
-                            fontSize: '32px', 
-                            color: '#ffffff',
-                            horizontalAlign: 'center',
-                            verticalAlign: 'center'
-                        }} />
-                    </Panel>
-                    <Panel style={{ 
-                        width: '280px', 
-                        height: '70px', 
-                        backgroundColor: '#ff0000cc', 
-                        border: '2px solid #ff0000',
-                        verticalAlign: 'center',
-                        horizontalAlign: 'center'
-                    }} onactivate={() => selectDifficulty('hard_3')}>
-                        <Label text="3 星" style={{ 
-                            fontSize: '32px', 
-                            color: '#ffffff',
-                            horizontalAlign: 'center',
-                            verticalAlign: 'center'
-                        }} />
-                    </Panel>
-                </Panel>
-                
-                {/* 返回按钮 */}
                 <Panel style={{
-                    width: '100%',
-                    horizontalAlign: 'center',
-                    marginTop: '20px'
+                    width: '900px',
+                    height: '650px',
+                    backgroundColor: '#1a1a2edd',
+                    border: '3px solid #ffd700',
+                    padding: '20px',
+                    flowChildren: 'down',
                 }}>
-                    <Panel style={{ 
-                        width: '200px', 
-                        height: '60px', 
-                        backgroundColor: '#666666',
-                        border: '2px solid #999999',
-                        verticalAlign: 'center',
-                        horizontalAlign: 'center'
-                    }} onactivate={goBack}>
-                        <Label text="返回" style={{ 
-                            fontSize: '28px', 
-                            color: '#ffffff',
-                            horizontalAlign: 'center',
-                            verticalAlign: 'center'
-                        }} />
+                    <Label text="选择难度" style={{ 
+                        fontSize: '42px', 
+                        color: '#ffd700', 
+                        textAlign: 'center', 
+                        marginBottom: '20px' 
+                    }} />
+                    
+                    {/* 简单难度 */}
+                    <Label text="简单" style={{ 
+                        fontSize: '32px', 
+                        color: '#00ff00', 
+                        marginBottom: '10px',
+                        marginTop: '10px'
+                    }} />
+                    <Panel style={{ flowChildren: 'right', marginBottom: '15px', width: '100%' }}>
+                        <Panel style={{ 
+                            width: '280px', 
+                            height: '70px', 
+                            backgroundColor: '#00ff0088', 
+                            border: '2px solid #00ff00',
+                            marginRight: '10px', 
+                            verticalAlign: 'center',
+                            horizontalAlign: 'center'
+                        }} onactivate={() => selectDifficulty('easy_1')}>
+                            <Label text="1 星" style={{ 
+                                fontSize: '32px', 
+                                color: '#ffffff',
+                                horizontalAlign: 'center',
+                                verticalAlign: 'center'
+                            }} />
+                        </Panel>
+                        <Panel style={{ 
+                            width: '280px', 
+                            height: '70px', 
+                            backgroundColor: '#00ff00aa', 
+                            border: '2px solid #00ff00',
+                            marginRight: '10px',
+                            verticalAlign: 'center',
+                            horizontalAlign: 'center'
+                        }} onactivate={() => selectDifficulty('easy_2')}>
+                            <Label text="2 星" style={{ 
+                                fontSize: '32px', 
+                                color: '#ffffff',
+                                horizontalAlign: 'center',
+                                verticalAlign: 'center'
+                            }} />
+                        </Panel>
+                        <Panel style={{ 
+                            width: '280px', 
+                            height: '70px', 
+                            backgroundColor: '#00ff00cc', 
+                            border: '2px solid #00ff00',
+                            verticalAlign: 'center',
+                            horizontalAlign: 'center'
+                        }} onactivate={() => selectDifficulty('easy_3')}>
+                            <Label text="3 星" style={{ 
+                                fontSize: '32px', 
+                                color: '#ffffff',
+                                horizontalAlign: 'center',
+                                verticalAlign: 'center'
+                            }} />
+                        </Panel>
+                    </Panel>
+                    
+                    {/* 普通难度 */}
+                    <Label text="普通" style={{ 
+                        fontSize: '32px', 
+                        color: '#ffaa00', 
+                        marginBottom: '10px',
+                        marginTop: '10px'
+                    }} />
+                    <Panel style={{ flowChildren: 'right', marginBottom: '15px', width: '100%' }}>
+                        <Panel style={{ 
+                            width: '280px', 
+                            height: '70px', 
+                            backgroundColor: '#ffaa0088', 
+                            border: '2px solid #ffaa00',
+                            marginRight: '10px',
+                            verticalAlign: 'center',
+                            horizontalAlign: 'center'
+                        }} onactivate={() => selectDifficulty('normal_1')}>
+                            <Label text="1 星" style={{ 
+                                fontSize: '32px', 
+                                color: '#ffffff',
+                                horizontalAlign: 'center',
+                                verticalAlign: 'center'
+                            }} />
+                        </Panel>
+                        <Panel style={{ 
+                            width: '280px', 
+                            height: '70px', 
+                            backgroundColor: '#ffaa00aa', 
+                            border: '2px solid #ffaa00',
+                            marginRight: '10px',
+                            verticalAlign: 'center',
+                            horizontalAlign: 'center'
+                        }} onactivate={() => selectDifficulty('normal_2')}>
+                            <Label text="2 星" style={{ 
+                                fontSize: '32px', 
+                                color: '#ffffff',
+                                horizontalAlign: 'center',
+                                verticalAlign: 'center'
+                            }} />
+                        </Panel>
+                        <Panel style={{ 
+                            width: '280px', 
+                            height: '70px', 
+                            backgroundColor: '#ffaa00cc', 
+                            border: '2px solid #ffaa00',
+                            verticalAlign: 'center',
+                            horizontalAlign: 'center'
+                        }} onactivate={() => selectDifficulty('normal_3')}>
+                            <Label text="3 星" style={{ 
+                                fontSize: '32px', 
+                                color: '#ffffff',
+                                horizontalAlign: 'center',
+                                verticalAlign: 'center'
+                            }} />
+                        </Panel>
+                    </Panel>
+                    
+                    {/* 困难难度 */}
+                    <Label text="困难" style={{ 
+                        fontSize: '32px', 
+                        color: '#ff0000', 
+                        marginBottom: '10px',
+                        marginTop: '10px'
+                    }} />
+                    <Panel style={{ flowChildren: 'right', marginBottom: '15px', width: '100%' }}>
+                        <Panel style={{ 
+                            width: '280px', 
+                            height: '70px', 
+                            backgroundColor: '#ff000088', 
+                            border: '2px solid #ff0000',
+                            marginRight: '10px',
+                            verticalAlign: 'center',
+                            horizontalAlign: 'center'
+                        }} onactivate={() => selectDifficulty('hard_1')}>
+                            <Label text="1 星" style={{ 
+                                fontSize: '32px', 
+                                color: '#ffffff',
+                                horizontalAlign: 'center',
+                                verticalAlign: 'center'
+                            }} />
+                        </Panel>
+                        <Panel style={{ 
+                            width: '280px', 
+                            height: '70px', 
+                            backgroundColor: '#ff0000aa', 
+                            border: '2px solid #ff0000',
+                            marginRight: '10px',
+                            verticalAlign: 'center',
+                            horizontalAlign: 'center'
+                        }} onactivate={() => selectDifficulty('hard_2')}>
+                            <Label text="2 星" style={{ 
+                                fontSize: '32px', 
+                                color: '#ffffff',
+                                horizontalAlign: 'center',
+                                verticalAlign: 'center'
+                            }} />
+                        </Panel>
+                        <Panel style={{ 
+                            width: '280px', 
+                            height: '70px', 
+                            backgroundColor: '#ff0000cc', 
+                            border: '2px solid #ff0000',
+                            verticalAlign: 'center',
+                            horizontalAlign: 'center'
+                        }} onactivate={() => selectDifficulty('hard_3')}>
+                            <Label text="3 星" style={{ 
+                                fontSize: '32px', 
+                                color: '#ffffff',
+                                horizontalAlign: 'center',
+                                verticalAlign: 'center'
+                            }} />
+                        </Panel>
+                    </Panel>
+                    
+                    {/* 返回按钮 */}
+                    <Panel style={{
+                        width: '100%',
+                        horizontalAlign: 'center',
+                        marginTop: '20px'
+                    }}>
+                        <Panel style={{ 
+                            width: '200px', 
+                            height: '60px', 
+                            backgroundColor: '#666666',
+                            border: '2px solid #999999',
+                            verticalAlign: 'center',
+                            horizontalAlign: 'center'
+                        }} onactivate={goBack}>
+                            <Label text="返回" style={{ 
+                                fontSize: '28px', 
+                                color: '#ffffff',
+                                horizontalAlign: 'center',
+                                verticalAlign: 'center'
+                            }} />
+                        </Panel>
                     </Panel>
                 </Panel>
             </Panel>
-        </Panel>
-    );
-}
+        );
+    }
 
     // 副本选择界面
     $. Msg('[DungeonMenu] 渲染副本选择界面');
@@ -371,12 +373,23 @@ const Root: FC = () => {
     const [menuVisible, setMenuVisible] = useState(false);
     const [rewardVisible, setRewardVisible] = useState(false);
     const [vaultVisible, setVaultVisible] = useState(false);
-    const [equipmentVisible, setEquipmentVisible] = useState(false);  // ⭐ 新增
+    const [equipmentVisible, setEquipmentVisible] = useState(false);
     const [materialsVisible, setMaterialsVisible] = useState(false);
+    
+    // ⭐ 新增：职业选择状态
+    const [showClassSelection, setShowClassSelection] = useState(true);
+    const [classSelected, setClassSelected] = useState(false);
 
     const onSelectReward = (reward: ExternalRewardItem) => {
-        $. Msg(`[Root] Selected reward: ${reward.name}`);
+        $.Msg(`[Root] Selected reward: ${reward. name}`);
         setRewardVisible(false);
+    };
+
+    // ⭐ 新增：职业选择处理
+    const onClassSelected = (classId: string) => {
+        $.Msg(`[Root] 职业选择完成: ${classId}`);
+        setClassSelected(true);
+        setShowClassSelection(false);
     };
 
     const url = `https://github.com/XavierCHN/x-template`;
@@ -391,23 +404,24 @@ const Root: FC = () => {
     
     const dPressed = useKeyPressed(`D`);
     const bPressed = useKeyPressed(`B`);
-    const cPressed = useKeyPressed(`C`);  // ⭐ 监听 C 键
+    const cPressed = useKeyPressed(`C`);
 
     // B 键打开仓库
     useEffect(() => {
-        if (bPressed) {
+        if (bPressed && classSelected) {  // ⭐ 只有选择职业后才能打开
             $. Msg('[Root] B 键按下，打开仓库');
             setVaultVisible(true);
+            setMaterialsVisible(true);
         }
-    }, [bPressed]);
+    }, [bPressed, classSelected]);
 
-    // ⭐ C 键打开装备界面
+    // C 键打开装备界面
     useEffect(() => {
-        if (cPressed) {
+        if (cPressed && classSelected) {  // ⭐ 只有选择职业后才能打开
             $.Msg('[Root] C 键按下，打开装备界面');
             setEquipmentVisible(true);
         }
-    }, [cPressed]);
+    }, [cPressed, classSelected]);
 
     // 事件监听
     useEffect(() => {
@@ -424,228 +438,245 @@ const Root: FC = () => {
         });
         
         const listenerVault = GameEvents.Subscribe('show_vault_ui', () => {
-            $. Msg('[Root] 收到 show_vault_ui 事件');
+            $.Msg('[Root] 收到 show_vault_ui 事件');
             setVaultVisible(true);
         });
 
-        // ⭐ 监听装备界面事件
         const listenerEquipment = GameEvents.Subscribe('show_equipment_ui', () => {
-            $.Msg('[Root] 收到 show_equipment_ui 事件');
+            $. Msg('[Root] 收到 show_equipment_ui 事件');
             setEquipmentVisible(true);
+        });
+
+        // ⭐ 新增：监听职业选择确认事件（从服务器返回）
+        const listenerClassConfirmed = GameEvents.Subscribe('class_selection_confirmed', (data: any) => {
+            $.Msg(`[Root] 收到职业选择确认: ${data.classId}`);
+            setClassSelected(true);
+            setShowClassSelection(false);
         });
 
         return () => {
             GameEvents.Unsubscribe(listenerMenu);
             GameEvents.Unsubscribe(listenerReward);
             GameEvents.Unsubscribe(listenerVault);
-            GameEvents.Unsubscribe(listenerEquipment);
+            GameEvents. Unsubscribe(listenerEquipment);
+            GameEvents.Unsubscribe(listenerClassConfirmed);
         };
     }, []);
 
     return (
     <>
-        <RageBar />
-
-        {/* 副本菜单弹窗 */}
-        <DungeonMenu visible={menuVisible} onClose={() => {
-            $. Msg('[Root] 关闭副本菜单');
-            setMenuVisible(false);
-        }} />
-
-        {/* 奖励选择弹窗 */}
-        <RewardSelection visible={rewardVisible} onSelect={onSelectReward} />
-        
-        {/* ⭐ 仓库容器 - 包含装备仓库和材料仓库 */}
-        {(vaultVisible || materialsVisible) && (
-            <Panel
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    
-                    zIndex: 100,
-                    backgroundColor: '#000000cc',
-          
-                }}
-            >
-       {/* 装备仓库弹窗 - 居中显示 */}
-{vaultVisible && (
-    <Panel
-        style={{
-            horizontalAlign: 'center',
-            verticalAlign: 'center',
-        }}
-    >
-        <VaultUI 
-            visible={vaultVisible} 
-            onClose={() => setVaultVisible(false)} 
+        {/* ⭐ 职业选择界面 - 最高优先级 */}
+        <ClassSelection 
+            visible={showClassSelection} 
+            onSelect={onClassSelected} 
         />
-    </Panel>
-)}
+
+        {/* ⭐ 以下内容只在选择职业后显示 */}
+        {classSelected && (
+            <>
+                <RageBar />
+
+                {/* 副本菜单弹窗 */}
+                <DungeonMenu visible={menuVisible} onClose={() => {
+                    $. Msg('[Root] 关闭副本菜单');
+                    setMenuVisible(false);
+                }} />
+
+                {/* 奖励选择弹窗 */}
+                <RewardSelection visible={rewardVisible} onSelect={onSelectReward} />
                 
-                {/* 材料仓库弹窗 */}
-                {materialsVisible && (
-                    <MaterialsUI 
-                        visible={materialsVisible} 
-                        onClose={() => setMaterialsVisible(false)} 
-                    />
+                {/* 仓库容器 */}
+                {(vaultVisible || materialsVisible) && (
+                    <Panel
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            zIndex: 100,
+                            backgroundColor: '#000000cc',
+                        }}
+                    >
+                        {/* 装备仓库弹窗 */}
+                        {vaultVisible && (
+                            <Panel
+                                style={{
+                                    horizontalAlign: 'center',
+                                    verticalAlign: 'center',
+                                }}
+                            >
+                                <VaultUI 
+                                    visible={vaultVisible} 
+                                    onClose={() => setVaultVisible(false)} 
+                                />
+                            </Panel>
+                        )}
+                        
+                        {/* 材料仓库弹窗 */}
+                        {materialsVisible && (
+                            <MaterialsUI 
+                                visible={materialsVisible} 
+                                onClose={() => setMaterialsVisible(false)} 
+                            />
+                        )}
+                    </Panel>
                 )}
-            </Panel>
-        )}
-        
-        {/* ⭐ 装备界面弹窗 */}
-        <EquipmentUI visible={equipmentVisible} onClose={() => setEquipmentVisible(false)} />
-        
-        {/* 右下角按钮区 */}
-        <Panel style={{
-            width: '140px',
-            height: '400px', // 增加高度容纳新按钮
-            horizontalAlign: 'right',
-            verticalAlign: 'bottom',
-            marginRight: '20px',
-            marginBottom: '20px',
-            flowChildren: 'down',
-        }}>
-            {/* ⭐ 装备按钮 */}
-            <Button
-                onactivate={() => {
-                    $.Msg('[Root] 点击装备按钮');
-                    Game.EmitSound('ui.button_click');
-                    setEquipmentVisible(true);
-                }}
-                style={{
-                    width: '120px',
-                    height: '120px',
-                    backgroundColor: '#4a148c',
-                    border: '3px solid #9c27b0',
+                
+                {/* 装备界面弹窗 */}
+                <EquipmentUI visible={equipmentVisible} onClose={() => setEquipmentVisible(false)} />
+                
+                {/* 右下角按钮区 */}
+                <Panel style={{
+                    width: '140px',
+                    height: '400px',
+                    horizontalAlign: 'right',
+                    verticalAlign: 'bottom',
+                    marginRight: '20px',
                     marginBottom: '20px',
-                }}
-                onmouseover={(panel) => {
-                    panel.style.backgroundColor = '#6a1b9a';
-                    panel. style.border = '4px solid #ba68c8';
-                    Game.EmitSound('ui. button_over');
-                }}
-                onmouseout={(panel) => {
-                    panel.style. backgroundColor = '#4a148c';
-                    panel.style. border = '3px solid #9c27b0';
-                }}
-            >
-                <Panel style={{
-                    width: '100%',
-                    height: '100%',
                     flowChildren: 'down',
                 }}>
-                    <Label 
-                        text="⚔️"
-                        style={{
-                            fontSize: '50px',
-                            textAlign: 'center',
-                            horizontalAlign: 'center',
-                            marginTop: '15px',
+                    {/* 装备按钮 */}
+                    <Button
+                        onactivate={() => {
+                            $. Msg('[Root] 点击装备按钮');
+                            Game.EmitSound('ui. button_click');
+                            setEquipmentVisible(true);
                         }}
-                    />
-                    <Label 
-                        text="装备"
                         style={{
-                            fontSize: '22px',
-                            color: '#ba68c8',
-                            textAlign: 'center',
-                            horizontalAlign: 'center',
-                            fontWeight: 'bold',
-                            marginTop: '5px',
+                            width: '120px',
+                            height: '120px',
+                            backgroundColor: '#4a148c',
+                            border: '3px solid #9c27b0',
+                            marginBottom: '20px',
                         }}
-                    />
-                    <Label 
-                        text="(C)"
-                        style={{
-                            fontSize: '16px',
-                            color: '#cccccc',
-                            textAlign: 'center',
-                            horizontalAlign: 'center',
+                        onmouseover={(panel) => {
+                            panel.style.backgroundColor = '#6a1b9a';
+                            panel.style.border = '4px solid #ba68c8';
+                            Game.EmitSound('ui.button_over');
                         }}
-                    />
-                </Panel>
-            </Button>
+                        onmouseout={(panel) => {
+                            panel.style.backgroundColor = '#4a148c';
+                            panel.style.border = '3px solid #9c27b0';
+                        }}
+                    >
+                        <Panel style={{
+                            width: '100%',
+                            height: '100%',
+                            flowChildren: 'down',
+                        }}>
+                            <Label 
+                                text="⚔️"
+                                style={{
+                                    fontSize: '50px',
+                                    textAlign: 'center',
+                                    horizontalAlign: 'center',
+                                    marginTop: '15px',
+                                }}
+                            />
+                            <Label 
+                                text="装备"
+                                style={{
+                                    fontSize: '22px',
+                                    color: '#ba68c8',
+                                    textAlign: 'center',
+                                    horizontalAlign: 'center',
+                                    fontWeight: 'bold',
+                                    marginTop: '5px',
+                                }}
+                            />
+                            <Label 
+                                text="(C)"
+                                style={{
+                                    fontSize: '16px',
+                                    color: '#cccccc',
+                                    textAlign: 'center',
+                                    horizontalAlign: 'center',
+                                }}
+                            />
+                        </Panel>
+                    </Button>
 
-            {/* 仓库按钮 - 同时打开装备仓库和材料仓库 */}
-            <Button
-                onactivate={() => {
-                    $. Msg('[Root] 点击仓库按钮');
-                    Game.EmitSound('ui. button_click');
-                    setVaultVisible(true);
-                    setMaterialsVisible(true); // 同时打开材料仓库
-                }}
-                style={{
-                    width: '120px',
-                    height: '120px',
-                    backgroundColor: '#8b4513',
-                    border: '3px solid #ffd700',
-                }}
-                onmouseover={(panel) => {
-                    panel.style.backgroundColor = '#a0522d';
-                    panel.style.border = '4px solid #ffd700';
-                    Game.EmitSound('ui. button_over');
-                }}
-                onmouseout={(panel) => {
-                    panel.style. backgroundColor = '#8b4513';
-                    panel.style. border = '3px solid #ffd700';
-                }}
-            >
-                <Panel style={{
-                    width: '100%',
-                    height: '100%',
-                    flowChildren: 'down',
-                }}>
-                    <Label 
-                        text="🎒"
-                        style={{
-                            fontSize: '50px',
-                            textAlign: 'center',
-                            horizontalAlign: 'center',
-                            marginTop: '15px',
+                    {/* 仓库按钮 */}
+                    <Button
+                        onactivate={() => {
+                            $.Msg('[Root] 点击仓库按钮');
+                            Game.EmitSound('ui.button_click');
+                            setVaultVisible(true);
+                            setMaterialsVisible(true);
                         }}
-                    />
-                    <Label 
-                        text="仓库"
                         style={{
-                            fontSize: '22px',
-                            color: '#ffd700',
-                            textAlign: 'center',
-                            horizontalAlign: 'center',
-                            fontWeight: 'bold',
-                            marginTop: '5px',
+                            width: '120px',
+                            height: '120px',
+                            backgroundColor: '#8b4513',
+                            border: '3px solid #ffd700',
                         }}
-                    />
-                    <Label 
-                        text="(B)"
-                        style={{
-                            fontSize: '16px',
-                            color: '#cccccc',
-                            textAlign: 'center',
-                            horizontalAlign: 'center',
+                        onmouseover={(panel) => {
+                            panel.style. backgroundColor = '#a0522d';
+                            panel.style.border = '4px solid #ffd700';
+                            Game.EmitSound('ui.button_over');
                         }}
-                    />
+                        onmouseout={(panel) => {
+                            panel.style.backgroundColor = '#8b4513';
+                            panel.style.border = '3px solid #ffd700';
+                        }}
+                    >
+                        <Panel style={{
+                            width: '100%',
+                            height: '100%',
+                            flowChildren: 'down',
+                        }}>
+                            <Label 
+                                text="🎒"
+                                style={{
+                                    fontSize: '50px',
+                                    textAlign: 'center',
+                                    horizontalAlign: 'center',
+                                    marginTop: '15px',
+                                }}
+                            />
+                            <Label 
+                                text="仓库"
+                                style={{
+                                    fontSize: '22px',
+                                    color: '#ffd700',
+                                    textAlign: 'center',
+                                    horizontalAlign: 'center',
+                                    fontWeight: 'bold',
+                                    marginTop: '5px',
+                                }}
+                            />
+                            <Label 
+                                text="(B)"
+                                style={{
+                                    fontSize: '16px',
+                                    color: '#cccccc',
+                                    textAlign: 'center',
+                                    horizontalAlign: 'center',
+                                }}
+                            />
+                        </Panel>
+                    </Button>
                 </Panel>
-            </Button>
-        </Panel>
 
-        {/* QRCODE 功能元素 */}
-        <PanoramaQRCode
-            style={{ preTransformScale2d: dPressed ?  `1.5` : `1` }}
-            id="QRCode"
-            onactivate={go}
-            value={url}
-            size={128}
-            excavate={8}
-            className={`QRCode`}
-        >
-            <Image
-                src="file://{images}/logos/dota_logo_bright. psd"
-                style={{ width: `32px`, height: `32px`, horizontalAlign: `center`, verticalAlign: `center` }}
-            />
-        </PanoramaQRCode>
+                {/* QRCODE 功能元素 */}
+                <PanoramaQRCode
+                    style={{ preTransformScale2d: dPressed ?  `1.5` : `1` }}
+                    id="QRCode"
+                    onactivate={go}
+                    value={url}
+                    size={128}
+                    excavate={8}
+                    className={`QRCode`}
+                >
+                    <Image
+                        src="file://{images}/logos/dota_logo_bright.psd"
+                        style={{ width: `32px`, height: `32px`, horizontalAlign: `center`, verticalAlign: `center` }}
+                    />
+                </PanoramaQRCode>
+            </>
+        )}
     </>
-);}
+    );
+}
 
-$.Msg('[HUD] 开始渲染 Root 组件');
-render(<Root />, $.GetContextPanel());
-$.Msg('[HUD] Root 组件渲染完成');
+$. Msg('[HUD] 开始渲染 Root 组件');
+render(<Root />, $. GetContextPanel());
+$. Msg('[HUD] Root 组件渲染完成');

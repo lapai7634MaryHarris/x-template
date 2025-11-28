@@ -59,9 +59,26 @@ material_used: {
         dungeon_type: string; // 副本类型 ("A", "B", "C")
         difficulty: string;   // 难度 ("easy", "normal", "hard")
     };
+ // ⭐ 新增：职业选择事件
+    select_class: {
+        PlayerID: PlayerID;
+        classId: string;
+    };
+    
+    class_selection_confirmed: {
+        classId: string;
+        className?: string;
+        success?: boolean;
+    };
+    
+    class_selection_failed: {
+        reason: string;
+        success: boolean;
+    };
+}
 
     // 其他事件可以继续按照关键-参数模式进行声明...
-}
+
 declare global {
     interface CustomGameEventDeclarations {
         reward_selected: {
