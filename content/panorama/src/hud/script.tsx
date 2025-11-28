@@ -385,9 +385,9 @@ const Root: FC = () => {
         setRewardVisible(false);
     };
 
-    // ⭐ 新增：职业选择处理
+    // ⭐ 职业选择完成回调 - 只有这里才会关闭界面
     const onClassSelected = (classId: string) => {
-        $.Msg(`[Root] 职业选择完成: ${classId}`);
+        $.Msg('[Root] 职业选择完成: ' + classId);
         setClassSelected(true);
         setShowClassSelection(false);
     };
@@ -459,7 +459,7 @@ const Root: FC = () => {
             GameEvents.Unsubscribe(listenerReward);
             GameEvents.Unsubscribe(listenerVault);
             GameEvents. Unsubscribe(listenerEquipment);
-            GameEvents.Unsubscribe(listenerClassConfirmed);
+             GameEvents.Unsubscribe(listenerClassConfirmed);
         };
     }, []);
 

@@ -5,33 +5,65 @@ interface ClassSelectionProps {
     onSelect: (classId: string) => void;
 }
 
-export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSelect }) => {
+export const ClassSelection: React.FC<ClassSelectionProps> = ({ visible, onSelect }) => {
     const [selectedClass, setSelectedClass] = useState<string | null>(null);
     const [isConfirming, setIsConfirming] = useState(false);
 
-    if (!visible) return null;
+    $. Msg('[ClassSelection] 渲染, visible=' + visible + ', selectedClass=' + selectedClass);
+
+    if (!visible) {
+        $. Msg('[ClassSelection] 不可见，返回 null');
+        return null;
+    }
 
     const handleSelectWarrior = () => {
-        Game.EmitSound('ui. button_click');
+        $.Msg('[ClassSelection] === 点击战士卡片 ===');
+        if (isConfirming) {
+            $. Msg('[ClassSelection] 正在确认中，忽略点击');
+            return;
+        }
+        Game.EmitSound('ui.button_click');
         setSelectedClass('warrior');
+        $. Msg('[ClassSelection] 设置 selectedClass = warrior');
     };
 
     const handleSelectLocked = () => {
+        $. Msg('[ClassSelection] === 点击锁定职业 ===');
         Game.EmitSound('General.Cancel');
     };
 
     const handleConfirm = () => {
-        if (! selectedClass || isConfirming) return;
+        $. Msg('[ClassSelection] === 点击确认按钮 ===');
+        $. Msg('[ClassSelection] selectedClass = ' + selectedClass);
+        $. Msg('[ClassSelection] isConfirming = ' + isConfirming);
         
+        if (! selectedClass) {
+            $.Msg('[ClassSelection] 没有选择职业，返回');
+            Game.EmitSound('General.Cancel');
+            return;
+        }
+        
+        if (isConfirming) {
+            $.Msg('[ClassSelection] 已经在确认中，返回');
+            return;
+        }
+        
+        $. Msg('[ClassSelection] 开始确认流程');
         setIsConfirming(true);
         Game.EmitSound('ui.crafting_gem_create');
         
-        (GameEvents.SendCustomGameEventToServer as any)('select_class', {
-            PlayerID: Players.GetLocalPlayer(),
+        const playerId = Players.GetLocalPlayer();
+        $. Msg('[ClassSelection] PlayerID = ' + playerId);
+        
+        // 发送事件到服务器
+        $. Msg('[ClassSelection] 发送 select_class 事件');
+        (GameEvents. SendCustomGameEventToServer as any)('select_class', {
+            PlayerID: playerId,
             classId: selectedClass,
         });
-
-        onSelect(selectedClass);
+        
+        $.Msg('[ClassSelection] 事件已发送，等待服务器响应');
+        // 注意：不在这里调用 onSelect，等待服务器确认后由 script.tsx 处理
     };
 
     const isWarriorSelected = selectedClass === 'warrior';
@@ -45,7 +77,7 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                 zIndex: 9999,
             }}
         >
-            {/* 主容器 - 垂直居中 */}
+            {/* 主容器 */}
             <Panel
                 style={{
                     width: '100%',
@@ -83,19 +115,18 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                     }}
                 >
                     {/* 战士卡片 */}
-                    <Panel
+                    <Button
                         style={{
                             width: '300px',
                             height: '400px',
-                            backgroundColor: isWarriorSelected ?  '#1a3a1a' : '#1c1410',
-                            border: isWarriorSelected ?  '4px solid #00ff00' : '3px solid #8b7355',
+                            backgroundColor: isWarriorSelected ? '#1a3a1a' : '#1c1410',
+                            border: isWarriorSelected ? '4px solid #00ff00' : '3px solid #8b7355',
                             marginRight: '40px',
                             flowChildren: 'down',
                             padding: '20px',
                         }}
                         onactivate={handleSelectWarrior}
                     >
-                        {/* 图标 */}
                         <Label
                             text="⚔️"
                             style={{
@@ -105,7 +136,6 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                             }}
                         />
                         
-                        {/* 名称 */}
                         <Label
                             text="战士"
                             style={{
@@ -117,7 +147,6 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                             }}
                         />
                         
-                        {/* 描述 */}
                         <Label
                             text="近战物理输出"
                             style={{
@@ -137,7 +166,6 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                             }}
                         />
                         
-                        {/* 分隔线 */}
                         <Panel
                             style={{
                                 width: '80%',
@@ -148,7 +176,6 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                             }}
                         />
                         
-                        {/* 资源 */}
                         <Label
                             text="资源：怒气"
                             style={{
@@ -158,7 +185,6 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                             }}
                         />
                         
-                        {/* 被动 */}
                         <Label
                             text="先天被动：重伤"
                             style={{
@@ -168,12 +194,10 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                             }}
                         />
                         
-                        {/* 特色 */}
                         <Label text="• 高爆发伤害" style={{ fontSize: '13px', color: '#aaaaaa', marginBottom: '3px' }} />
                         <Label text="• AOE技能" style={{ fontSize: '13px', color: '#aaaaaa', marginBottom: '3px' }} />
                         <Label text="• 强大生存能力" style={{ fontSize: '13px', color: '#aaaaaa' }} />
                         
-                        {/* 选中标记 */}
                         {isWarriorSelected && (
                             <Panel
                                 style={{
@@ -181,7 +205,6 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                                     height: '40px',
                                     backgroundColor: '#00aa00',
                                     marginTop: 'auto',
-                                    horizontalAlign: 'center',
                                 }}
                             >
                                 <Label
@@ -196,10 +219,10 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                                 />
                             </Panel>
                         )}
-                    </Panel>
+                    </Button>
 
                     {/* 锁定职业卡片 */}
-                    <Panel
+                    <Button
                         style={{
                             width: '300px',
                             height: '400px',
@@ -211,7 +234,6 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                         }}
                         onactivate={handleSelectLocked}
                     >
-                        {/* 图标 */}
                         <Label
                             text="🔒"
                             style={{
@@ -221,7 +243,6 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                             }}
                         />
                         
-                        {/* 名称 */}
                         <Label
                             text="?? ?"
                             style={{
@@ -233,7 +254,6 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                             }}
                         />
                         
-                        {/* 锁定原因 */}
                         <Label
                             text="(尚未开发)"
                             style={{
@@ -244,7 +264,6 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                             }}
                         />
                         
-                        {/* 描述 */}
                         <Label
                             text="神秘职业"
                             style={{
@@ -262,7 +281,7 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                                 horizontalAlign: 'center',
                             }}
                         />
-                    </Panel>
+                    </Button>
                 </Panel>
 
                 {/* 底部信息框 */}
@@ -273,44 +292,42 @@ export const ClassSelection: React. FC<ClassSelectionProps> = ({ visible, onSele
                         backgroundColor: '#151515',
                         border: '2px solid #8b7355',
                         marginBottom: '30px',
-                        horizontalAlign: 'center',
-                        verticalAlign: 'center',
                     }}
                 >
                     <Label
                         text={isWarriorSelected ? '已选择：战士 - 近战物理输出职业' : '请选择一个职业开始游戏'}
                         style={{
                             fontSize: '20px',
-                            color: isWarriorSelected ?  '#ffd700' : '#888888',
+                            color: isWarriorSelected ? '#ffd700' : '#888888',
                             horizontalAlign: 'center',
                             verticalAlign: 'center',
+                            marginTop: '25px',
                         }}
                     />
                 </Panel>
 
                 {/* 确认按钮 */}
-                <Panel
+                <Button
                     style={{
                         width: '300px',
                         height: '60px',
-                        backgroundColor: selectedClass ?  (isConfirming ? '#666666' : '#2d7d2d') : '#333333',
-                        border: selectedClass ?  '3px solid #4caf50' : '2px solid #555555',
-                        horizontalAlign: 'center',
-                        verticalAlign: 'center',
+                        backgroundColor: selectedClass ? (isConfirming ? '#666666' : '#2d7d2d') : '#333333',
+                        border: selectedClass ? '3px solid #4caf50' : '2px solid #555555',
                     }}
                     onactivate={handleConfirm}
                 >
                     <Label
-                        text={isConfirming ? '正在进入游戏.. .' : (selectedClass ? '确认选择' : '请先选择职业')}
+                        text={isConfirming ? '正在进入游戏...' : (selectedClass ? '确认选择' : '请先选择职业')}
                         style={{
                             fontSize: '24px',
-                            color: selectedClass ?  '#ffffff' : '#666666',
+                            color: selectedClass ? '#ffffff' : '#666666',
                             fontWeight: 'bold',
                             horizontalAlign: 'center',
                             verticalAlign: 'center',
+                            marginTop: '15px',
                         }}
                     />
-                </Panel>
+                </Button>
             </Panel>
         </Panel>
     );
