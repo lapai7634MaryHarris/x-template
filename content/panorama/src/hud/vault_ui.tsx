@@ -26,9 +26,11 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
     const [hoveredItem, setHoveredItem] = useState<number | null>(null);
     const [compareEquipment, setCompareEquipment] = useState<ExternalRewardItem | null>(null);
     const [isEquipping, setIsEquipping] = useState(false);  // ⭐ 添加这一行
+    const [isOpen, setIsOpen] = useState(true); // 用于管理是否显示仓库页面
 
     const hoverTimeoutRef = useRef<number | null>(null);
-
+    
+    
     // ==================== 数据加载逻辑 ====================
     useEffect(() => {
         if (!visible) return;
@@ -210,17 +212,15 @@ const equipmentListener = GameEvents. Subscribe('update_equipment_ui', (data: an
 
     return (
         /* 全屏背景遮罩 */
-        <Panel 
-            style={{
-                width: '100%',
-                height: '100%',
-                horizontalAlign: 'center',
-                verticalAlign: 'center',
-                zIndex: 100,
-                backgroundColor: '#000000cc',
-            }}
-            onactivate={onClose}
-        >
+       <Panel style={{
+        width: '740px',
+        height: '520px',
+        horizontalAlign: 'center',
+        verticalAlign: 'center',
+        backgroundColor: '#1c1410',
+        border: '4px solid #8b7355',
+        flowChildren: 'down',
+    }}>
             {/* 主容器 */}
             <Panel 
                 style={{
@@ -261,7 +261,7 @@ const equipmentListener = GameEvents. Subscribe('update_equipment_ui', (data: an
                         }}
                     />
                     {/* 弹性空间 */}
-                    <Panel style={{ width: '100%', height: '1px' }} />
+                    <Panel style={{ width: 'fill-parent-flow(1)', height: '1px' }} />
                     {/* 关闭按钮 */}
                     <Button 
                         onactivate={onClose}
