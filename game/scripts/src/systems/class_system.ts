@@ -2,6 +2,8 @@
  * 职业系统
  */
 
+import { SkillPointSystem } from './skill_point_system';
+
 export enum PlayerClass {
     WARRIOR = 'warrior',
     UNKNOWN = 'unknown',
@@ -23,7 +25,7 @@ const CLASS_CONFIGS: Record<PlayerClass, ClassConfig> = {
         innatePassive: 'warrior_deep_wound',
         available: true,
     },
-    [PlayerClass.UNKNOWN]: {
+    [PlayerClass. UNKNOWN]: {
         id: PlayerClass.UNKNOWN,
         name: '??? ',
         heroName: '',
@@ -66,13 +68,13 @@ export class ClassSystem {
 
     private static OnPlayerSelectClass(playerId: PlayerID, classId: PlayerClass): void {
         const classConfig = CLASS_CONFIGS[classId];
-        if (!classConfig || !classConfig.available) {
+        if (!classConfig || ! classConfig.available) {
             print('[ClassSystem] 职业不可用: ' + classId);
             this.SendSelectionFailed(playerId, '该职业尚未开发');
             return;
         }
 
-        const existingData = this.playerClasses.get(playerId);
+        const existingData = this. playerClasses.get(playerId);
         if (existingData && existingData.confirmed) {
             print('[ClassSystem] 玩家已选择过职业');
             this.SendSelectionFailed(playerId, '你已经选择过职业');
@@ -117,17 +119,20 @@ export class ClassSystem {
         print('[ClassSystem] 玩家: ' + playerId + ', 职业: ' + classConfig.name);
         print('========================================');
 
-        this.playerClasses.set(playerId, {
+        this.playerClasses. set(playerId, {
             classId: classConfig.id,
             confirmed: true,
         });
 
         this.SetupHero(hero, classConfig);
 
-        // ⭐ 修正出生点坐标
+        // ⭐ 修正：直接调用 SkillPointSystem. initPlayer()
+        SkillPointSystem. initPlayer(playerId);
+        print('[ClassSystem] 已初始化玩家技能点系统');
+
+        // 修正出生点坐标
         const spawnPoint = Vector(-13760, 12544, 192);
         FindClearSpaceForUnit(hero, spawnPoint, true);
-        print('[ClassSystem] 英雄已传送到: ' + spawnPoint.x + ', ' + spawnPoint.y + ', ' + spawnPoint.z);
 
         // 发送确认事件
         const player = PlayerResource.GetPlayer(playerId);
@@ -137,7 +142,7 @@ export class ClassSystem {
                 player,
                 'class_selection_confirmed' as never,
                 {
-                    classId: classConfig.id,
+                    classId: classConfig. id,
                     className: classConfig.name,
                     success: true,
                 } as never
@@ -165,7 +170,7 @@ export class ClassSystem {
         }
 
         for (let i = 0; i < 9; i++) {
-            const item = hero.GetItemInSlot(i);
+            const item = hero. GetItemInSlot(i);
             if (item) {
                 hero.RemoveItem(item);
             }
@@ -195,18 +200,18 @@ export class ClassSystem {
     }
 
     public static GetPlayerClass(playerId: PlayerID): PlayerClass | null {
-        const data = this.playerClasses.get(playerId);
+        const data = this.playerClasses. get(playerId);
         return data ? data.classId : null;
     }
 
     public static GetPlayerClassConfig(playerId: PlayerID): ClassConfig | null {
-        const classId = this.GetPlayerClass(playerId);
+        const classId = this. GetPlayerClass(playerId);
         if (! classId) return null;
         return CLASS_CONFIGS[classId] || null;
     }
 
     public static HasSelectedClass(playerId: PlayerID): boolean {
         const data = this.playerClasses.get(playerId);
-        return data !== undefined && data.confirmed;
+        return data !== undefined && data. confirmed;
     }
 }

@@ -17,11 +17,12 @@ import { ZoneDungeon } from "./zone/zone_dungeon";
 import { MaterialUseSystem } from './zone/zone_loot';
 import { ClassSystem } from './systems/class_system';  // ⭐ 新增导入
 
+import { InitSkillPointSystem, SkillPointSystem } from './systems/skill_point_system';
 // 初始化模块
 if (IsServer()) {
     pcall(() => require('init_modifiers'));
 }
-
+InitSkillPointSystem();
 declare global {
     interface CDOTAGameRules {
         SimpleDungeon?: SimpleDungeon;
@@ -359,7 +360,19 @@ Object.assign(getfenv(), {
         
         // ⭐ 初始化职业系统（在其他系统之前）
         ClassSystem.Init();
-        
+        print("[GameMode] Activating.. .");
+print("=".repeat(50));
+
+ActivateModules();
+
+// ⭐ 初始化职业系统（在其他系统之前）
+ClassSystem.Init();
+
+// ⭐ 初始化技能点系统
+InitSkillPointSystem();
+print("[GameMode] 技能点系统已初始化");
+
+RageSystem.Init();
         RageSystem.Init();
         GameRules.SimpleDungeon = new SimpleDungeon();
         GameRules.ZoneDungeon = new ZoneDungeon();

@@ -15,12 +15,14 @@ import { setKeyDownCallback, useKeyPressed } from '../hooks/useKeyboard';
 import { registerCustomKey } from '../utils/keybinding';
 import { EquipmentUI } from './equipment_ui';
 import { MaterialsUI } from './materials_ui';
-import { ClassSelection } from './class_selection';  // ⭐ 新增导入
+import { ClassSelection } from './class_selection';
+import { SkillTreeUI } from './skill_tree_ui';  // ⭐ 新增导入
 
 registerCustomKey('D');
 registerCustomKey('F');
 registerCustomKey('B');
 registerCustomKey('C');
+registerCustomKey('K');  // ⭐ 注册技能树快捷键
 
 
 // 副本菜单组件
@@ -28,10 +30,10 @@ const DungeonMenu: FC<{ visible: boolean; onClose: () => void }> = ({ visible, o
     const [selectedDungeon, setSelectedDungeon] = useState<string | null>(null);
 
     const selectDungeon = (dungeonType: string) => {
-        $.Msg(`[DungeonMenu] 点击了副本: ${dungeonType}`);
+        $. Msg(`[DungeonMenu] 点击了副本: ${dungeonType}`);
         
         if (dungeonType === "A") {
-            $.Msg('[DungeonMenu] 设置状态为 A');
+            $. Msg('[DungeonMenu] 设置状态为 A');
             setSelectedDungeon("A");
         } else {
             // @ts-ignore
@@ -59,17 +61,17 @@ const DungeonMenu: FC<{ visible: boolean; onClose: () => void }> = ({ visible, o
     };
 
     const goBack = () => {
-        $.Msg('[DungeonMenu] 返回');
+        $. Msg('[DungeonMenu] 返回');
         setSelectedDungeon(null);
     };
 
     if (!visible) return null;
 
-    $.Msg(`[DungeonMenu] 渲染，selectedDungeon = ${selectedDungeon}`);
+    $. Msg(`[DungeonMenu] 渲染，selectedDungeon = ${selectedDungeon}`);
 
     // 难度选择界面
     if (selectedDungeon === "A") {
-        $.Msg('[DungeonMenu] 渲染难度选择界面');
+        $. Msg('[DungeonMenu] 渲染难度选择界面');
         
         return (
             <Panel style={{
@@ -293,7 +295,7 @@ const DungeonMenu: FC<{ visible: boolean; onClose: () => void }> = ({ visible, o
     }
 
     // 副本选择界面
-    $.Msg('[DungeonMenu] 渲染副本选择界面');
+    $. Msg('[DungeonMenu] 渲染副本选择界面');
     
     return (
         <Panel style={{
@@ -375,19 +377,20 @@ const Root: FC = () => {
     const [vaultVisible, setVaultVisible] = useState(false);
     const [equipmentVisible, setEquipmentVisible] = useState(false);
     const [materialsVisible, setMaterialsVisible] = useState(false);
+    const [skillTreeVisible, setSkillTreeVisible] = useState(false);  // ⭐ 新增：技能树状态
     
-    // ⭐ 新增：职业选择状态
+    // 职业选择状态
     const [showClassSelection, setShowClassSelection] = useState(true);
     const [classSelected, setClassSelected] = useState(false);
 
     const onSelectReward = (reward: ExternalRewardItem) => {
-        $.Msg(`[Root] Selected reward: ${reward.name}`);
+        $. Msg(`[Root] Selected reward: ${reward.name}`);
         setRewardVisible(false);
     };
 
-    // ⭐ 职业选择完成回调 - 只有这里才会关闭界面
+    // 职业选择完成回调
     const onClassSelected = (classId: string) => {
-        $.Msg('[Root] 职业选择完成: ' + classId);
+        $. Msg('[Root] 职业选择完成: ' + classId);
         setClassSelected(true);
         setShowClassSelection(false);
     };
@@ -397,7 +400,7 @@ const Root: FC = () => {
         const wait = new WaitAction(0.5);
         const showTextTooltip = new DispatchEventAction(`DOTAShowTextTooltip`, $(`#QRCode`), `正在打开链接`);
         const hideTextTooltip = new DispatchEventAction(`DOTAHideTextTooltip`, $(`#QRCode`));
-        const playSound = new FunctionAction(() => PlayUISoundScript('DotaSOS.TestBeep'));
+        const playSound = new FunctionAction(() => PlayUISoundScript('DotaSOS. TestBeep'));
         const gotoUrl = new DispatchEventAction(`ExternalBrowserGoToURL`, url);
         RunSequentialActions([showTextTooltip, wait, hideTextTooltip, wait, playSound, gotoUrl]);
     }, [url]);
@@ -405,11 +408,12 @@ const Root: FC = () => {
     const dPressed = useKeyPressed(`D`);
     const bPressed = useKeyPressed(`B`);
     const cPressed = useKeyPressed(`C`);
+    const kPressed = useKeyPressed(`K`);  // ⭐ 新增：K 键
 
     // B 键打开仓库
     useEffect(() => {
-        if (bPressed && classSelected) {  // ⭐ 只有选择职业后才能打开
-            $.Msg('[Root] B 键按下，打开仓库');
+        if (bPressed && classSelected) {
+            $. Msg('[Root] B 键按下，打开仓库');
             setVaultVisible(true);
             setMaterialsVisible(true);
         }
@@ -417,28 +421,36 @@ const Root: FC = () => {
 
     // C 键打开装备界面
     useEffect(() => {
-        if (cPressed && classSelected) {  // ⭐ 只有选择职业后才能打开
+        if (cPressed && classSelected) {
             $.Msg('[Root] C 键按下，打开装备界面');
             setEquipmentVisible(true);
         }
     }, [cPressed, classSelected]);
 
+    // ⭐ K 键打开技能树
+    useEffect(() => {
+        if (kPressed && classSelected) {
+            $.Msg('[Root] K 键按下，切换技能树界面');
+            setSkillTreeVisible(prev => !prev);
+        }
+    }, [kPressed, classSelected]);
+
     // 事件监听
     useEffect(() => {
-        $.Msg('[Root] 注册事件监听器');
+        $. Msg('[Root] 注册事件监听器');
         
         const listenerMenu = GameEvents.Subscribe('show_dungeon_menu', () => {
-            $.Msg('[Root] 收到 show_dungeon_menu 事件');
+            $. Msg('[Root] 收到 show_dungeon_menu 事件');
             setMenuVisible(true);
         });
 
         const listenerReward = GameEvents.Subscribe("show_reward_selection", () => {
-            $.Msg('[Root] 收到 show_reward_selection 事件');
+            $. Msg('[Root] 收到 show_reward_selection 事件');
             setRewardVisible(true);
         });
         
         const listenerVault = GameEvents.Subscribe('show_vault_ui', () => {
-            $.Msg('[Root] 收到 show_vault_ui 事件');
+            $. Msg('[Root] 收到 show_vault_ui 事件');
             setVaultVisible(true);
         });
 
@@ -447,7 +459,13 @@ const Root: FC = () => {
             setEquipmentVisible(true);
         });
 
-        // ⭐ 新增：监听职业选择确认事件（从服务器返回）
+        // ⭐ 新增：监听技能树显示事件
+        const listenerSkillTree = GameEvents.Subscribe('show_skill_tree', () => {
+            $.Msg('[Root] 收到 show_skill_tree 事件');
+            setSkillTreeVisible(true);
+        });
+
+        // 监听职业选择确认事件
         const listenerClassConfirmed = GameEvents.Subscribe('class_selection_confirmed', (data: any) => {
             $.Msg(`[Root] 收到职业选择确认: ${data.classId}`);
             setClassSelected(true);
@@ -459,26 +477,27 @@ const Root: FC = () => {
             GameEvents.Unsubscribe(listenerReward);
             GameEvents.Unsubscribe(listenerVault);
             GameEvents.Unsubscribe(listenerEquipment);
-             GameEvents.Unsubscribe(listenerClassConfirmed);
+            GameEvents.Unsubscribe(listenerSkillTree);
+            GameEvents.Unsubscribe(listenerClassConfirmed);
         };
     }, []);
 
     return (
     <>
-        {/* ⭐ 职业选择界面 - 最高优先级 */}
+        {/* 职业选择界面 - 最高优先级 */}
         <ClassSelection 
             visible={showClassSelection} 
             onSelect={onClassSelected} 
         />
 
-        {/* ⭐ 以下内容只在选择职业后显示 */}
+        {/* 以下内容只在选择职业后显示 */}
         {classSelected && (
             <>
                 <RageBar />
 
                 {/* 副本菜单弹窗 */}
                 <DungeonMenu visible={menuVisible} onClose={() => {
-                    $.Msg('[Root] 关闭副本菜单');
+                    $. Msg('[Root] 关闭副本菜单');
                     setMenuVisible(false);
                 }} />
 
@@ -523,16 +542,83 @@ const Root: FC = () => {
                 {/* 装备界面弹窗 */}
                 <EquipmentUI visible={equipmentVisible} onClose={() => setEquipmentVisible(false)} />
                 
+                {/* ⭐ 技能树界面 */}
+                <SkillTreeUI 
+                    visible={skillTreeVisible} 
+                    onClose={() => setSkillTreeVisible(false)} 
+                />
+                
                 {/* 右下角按钮区 */}
                 <Panel style={{
                     width: '140px',
-                    height: '400px',
+                    height: '520px',  // ⭐ 增加高度容纳新按钮
                     horizontalAlign: 'right',
                     verticalAlign: 'bottom',
                     marginRight: '20px',
                     marginBottom: '20px',
                     flowChildren: 'down',
                 }}>
+                    {/* ⭐ 技能树按钮 */}
+                    <Button
+                        onactivate={() => {
+                            $.Msg('[Root] 点击技能树按钮');
+                            Game.EmitSound('ui. button_click');
+                            setSkillTreeVisible(true);
+                        }}
+                        style={{
+                            width: '120px',
+                            height: '120px',
+                            backgroundColor: '#1a5a1a',
+                            border: '3px solid #00aa00',
+                            marginBottom: '20px',
+                        }}
+                        onmouseover={(panel) => {
+                            panel. style.backgroundColor = '#226622';
+                            panel.style.border = '4px solid #00cc00';
+                            Game.EmitSound('ui.button_over');
+                        }}
+                        onmouseout={(panel) => {
+                            panel.style. backgroundColor = '#1a5a1a';
+                            panel.style.border = '3px solid #00aa00';
+                        }}
+                    >
+                        <Panel style={{
+                            width: '100%',
+                            height: '100%',
+                            flowChildren: 'down',
+                        }}>
+                            <Label 
+                                text="📖"
+                                style={{
+                                    fontSize: '50px',
+                                    textAlign: 'center',
+                                    horizontalAlign: 'center',
+                                    marginTop: '15px',
+                                }}
+                            />
+                            <Label 
+                                text="技能"
+                                style={{
+                                    fontSize: '22px',
+                                    color: '#00ff00',
+                                    textAlign: 'center',
+                                    horizontalAlign: 'center',
+                                    fontWeight: 'bold',
+                                    marginTop: '5px',
+                                }}
+                            />
+                            <Label 
+                                text="(K)"
+                                style={{
+                                    fontSize: '16px',
+                                    color: '#cccccc',
+                                    textAlign: 'center',
+                                    horizontalAlign: 'center',
+                                }}
+                            />
+                        </Panel>
+                    </Button>
+
                     {/* 装备按钮 */}
                     <Button
                         onactivate={() => {
@@ -550,11 +636,11 @@ const Root: FC = () => {
                         onmouseover={(panel) => {
                             panel.style.backgroundColor = '#6a1b9a';
                             panel.style.border = '4px solid #ba68c8';
-                            Game.EmitSound('ui.button_over');
+                            Game. EmitSound('ui.button_over');
                         }}
                         onmouseout={(panel) => {
                             panel.style.backgroundColor = '#4a148c';
-                            panel.style.border = '3px solid #9c27b0';
+                            panel.style. border = '3px solid #9c27b0';
                         }}
                     >
                         <Panel style={{
@@ -611,11 +697,11 @@ const Root: FC = () => {
                         onmouseover={(panel) => {
                             panel.style.backgroundColor = '#a0522d';
                             panel.style.border = '4px solid #ffd700';
-                            Game.EmitSound('ui.button_over');
+                            Game. EmitSound('ui.button_over');
                         }}
                         onmouseout={(panel) => {
                             panel.style.backgroundColor = '#8b4513';
-                            panel.style.border = '3px solid #ffd700';
+                            panel.style. border = '3px solid #ffd700';
                         }}
                     >
                         <Panel style={{
@@ -658,7 +744,7 @@ const Root: FC = () => {
 
                 {/* QRCODE 功能元素 */}
                 <PanoramaQRCode
-                    style={{ preTransformScale2d: dPressed ?  `1.5` : `1` }}
+                    style={{ preTransformScale2d: dPressed ? `1.5` : `1` }}
                     id="QRCode"
                     onactivate={go}
                     value={url}
@@ -677,6 +763,6 @@ const Root: FC = () => {
     );
 }
 
-$.Msg('[HUD] 开始渲染 Root 组件');
-render(<Root />, $.GetContextPanel());
+$. Msg('[HUD] 开始渲染 Root 组件');
+render(<Root />, $. GetContextPanel());
 $.Msg('[HUD] Root 组件渲染完成');
