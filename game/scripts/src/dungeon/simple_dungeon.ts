@@ -46,19 +46,40 @@ export class SimpleDungeon {
                 this.StartDungeon(playerId);
             }
             
-            if (text === "-vault" || text === "vault" || text === "-v" || text === "v") {
-                const player = PlayerResource.GetPlayer(playerId);
-                if (player) {
-                    (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'show_vault_ui', {});
-                    
-                    const vault = EquipmentVaultSystem.GetVault(playerId);
-                    (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_vault_ui', {
-                        items: vault
-                    });
-                    
-                    print(`[SimpleDungeon] 打开仓库 UI，发送 ${vault.length} 件装备数据`);
-                }
-            }
+           if (text === "-vault" || text === "vault" || text === "-v" || text === "v") {
+    const player = PlayerResource.GetPlayer(playerId);
+    if (player) {
+        (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'show_vault_ui', {});
+        
+        const vault = EquipmentVaultSystem.GetVault(playerId);
+        
+        // ⭐ 序列化仓库数据
+        const serializedVault: any[] = [];
+        vault.forEach((item) => {
+            serializedVault.push({
+                name: item.name,
+                type: item.type,
+                icon: item.icon,
+                stats: item.stats,
+                rarity: item.rarity,
+                // ⭐ 序列化 affixDetails
+                affixDetails: item.affixDetails ?  item.affixDetails. map(affix => ({
+                    position: affix.position,
+                    tier: affix.tier,
+                    name: affix.name,
+                    description: affix.description,
+                    color: affix.color,
+                })) : undefined,
+            });
+        });
+        
+        (CustomGameEventManager. Send_ServerToPlayer as any)(player, 'update_vault_ui', {
+            items: serializedVault  // ⭐ 发送序列化后的数据
+        });
+        
+        print(`[SimpleDungeon] 打开仓库 UI，发送 ${vault.length} 件装备数据`);
+    }
+}
         }, this);
         
 CustomGameEventManager.RegisterListener("equip_item_from_vault", (userId, event: any) => {
