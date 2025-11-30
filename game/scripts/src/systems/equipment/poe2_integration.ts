@@ -139,28 +139,52 @@ export class POE2Integration {
     /**
      * 生成装备并直接添加到玩家仓库
      */
-    public static GenerateAndAddToVault(
-        playerId: PlayerID,
-        itemLevel: number,
-        rarity?: any,
-        slot?: EquipSlot
-    ): void {
-        // 生成 POE2 装备
-        const poe2Item = POE2EquipmentGenerator. GenerateRandomEquipment(itemLevel, rarity, slot);
-        if (!poe2Item) {
-            print('[POE2Integration] 生成装备失败');
-            return;
-        }
-
-        // 转换为仓库格式
-        const vaultItem = this.ConvertToVaultItem(poe2Item);
-
-        // 添加到仓库
-        EquipmentVaultSystem.SaveToVault(playerId, vaultItem);
-
-        const rarityName = RARITY_NAMES[poe2Item.rarity];
-        print(`[POE2Integration] 已添加装备到仓库: ${vaultItem.name} [${rarityName}]`);
+ public static GenerateAndAddToVault(
+    playerId: PlayerID,
+    itemLevel: number,
+    rarity?: any,
+    slot?: EquipSlot
+): void {
+    // 生成 POE2 装备
+    const poe2Item = POE2EquipmentGenerator.GenerateRandomEquipment(itemLevel, rarity, slot);
+    if (! poe2Item) {
+        print('[POE2Integration] 生成装备失败');
+        return;
     }
+
+    // ⭐ 添加详细日志
+    print('========================================');
+    print(`[POE2] 装备详情:`);
+    print(`  名称: ${poe2Item. name}`);
+    print(`  稀有度: ${RARITY_NAMES[poe2Item.rarity]}`);
+    print(`  物品等级: ${poe2Item.itemLevel}`);
+    print(`  前缀 (${poe2Item.prefixes.length}):`);
+    for (const affix of poe2Item.prefixes) {
+        const affixDef = GetAffixById(affix. affixId);
+        if (affixDef) {
+            const desc = affixDef.description. replace('{value}', affix.value. toString());
+            print(`    [T${affix.tier}] ${affixDef.name} - ${desc}`);
+        }
+    }
+    print(`  后缀 (${poe2Item.suffixes.length}):`);
+    for (const affix of poe2Item.suffixes) {
+        const affixDef = GetAffixById(affix.affixId);
+        if (affixDef) {
+            const desc = affixDef.description.replace('{value}', affix.value. toString());
+            print(`    [T${affix.tier}] ${affixDef.name} - ${desc}`);
+        }
+    }
+    print('========================================');
+
+    // 转换为仓库格式
+    const vaultItem = this.ConvertToVaultItem(poe2Item);
+
+    // 添加到仓库
+    EquipmentVaultSystem.SaveToVault(playerId, vaultItem);
+
+    const rarityName = RARITY_NAMES[poe2Item.rarity];
+    print(`[POE2Integration] 已添加装备到仓库: ${vaultItem.name} [${rarityName}]`);
+}
 
     /**
      * 批量生成装备

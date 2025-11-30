@@ -22,7 +22,7 @@ import { InitRuneSystem, RuneSystem } from './systems/rune_system';
 import { InitDamageTest } from './systems/damage_test';
 import { InitCharacterStatsHandler } from './systems/character_stats_handler';
 import { POE2Integration } from './systems/equipment/poe2_integration';
-
+import { InitPOE2System } from './systems/equipment/poe2_init';
 
 if (IsServer()) {
     pcall(() => require('init_modifiers'));
@@ -41,6 +41,10 @@ InitDamageTest();
 InitRuneSystem();
 print('[GameMode] 护石系统已初始化');
 
+ // ⭐ 添加这两行
+        InitPOE2System();
+        print('[GameMode] POE2 装备系统已初始化');
+        
 declare function require(module: string): void;
 
 MaterialUseSystem.Init();
