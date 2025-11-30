@@ -7,7 +7,7 @@ import '../utils/hide-default-hud';
 import { RewardSelection } from "./reward_selection";
 import { type FC, useState, useEffect } from 'react';
 import { render } from 'react-panorama-x';
-import { PanoramaQRCode } from '../utils/react-panorama-qrcode';
+
 import { DispatchEventAction, FunctionAction, RunSequentialActions, WaitAction } from '../utils/sequential-actions';
 import React from 'react';
 import { RageBar } from './rage_bar/rage_bar';
@@ -548,17 +548,17 @@ const Root: FC = () => {
                     onClose={() => setSkillTreeVisible(false)} 
                 />
                 
-                {/* 右下角按钮区 */}
+                        {/* 右下角按钮区 */}
                 <Panel style={{
                     width: '140px',
-                    height: '520px',  // ⭐ 增加高度容纳新按钮
+                    height: '400px',
                     horizontalAlign: 'right',
                     verticalAlign: 'bottom',
                     marginRight: '20px',
                     marginBottom: '20px',
                     flowChildren: 'down',
                 }}>
-                    {/* ⭐ 技能树按钮 */}
+                    {/* 技能树按钮 */}
                     <Button
                         onactivate={() => {
                             $.Msg('[Root] 点击技能树按钮');
@@ -570,7 +570,7 @@ const Root: FC = () => {
                             height: '120px',
                             backgroundColor: '#1a5a1a',
                             border: '3px solid #00aa00',
-                            marginBottom: '20px',
+                            marginBottom: '10px',
                         }}
                         onmouseover={(panel) => {
                             panel.style.backgroundColor = '#226622';
@@ -579,7 +579,7 @@ const Root: FC = () => {
                         }}
                         onmouseout={(panel) => {
                             panel.style.backgroundColor = '#1a5a1a';
-                            panel.style.border = '3px solid #00aa00';
+                            panel.style. border = '3px solid #00aa00';
                         }}
                     >
                         <Panel style={{
@@ -619,10 +619,10 @@ const Root: FC = () => {
                         </Panel>
                     </Button>
 
-                    {/* 装备按钮 */}
+                    {/* 角色按钮（原装备按钮）*/}
                     <Button
                         onactivate={() => {
-                            $.Msg('[Root] 点击装备按钮');
+                            $.Msg('[Root] 点击角色按钮');
                             Game.EmitSound('ui.button_click');
                             setEquipmentVisible(true);
                         }}
@@ -631,7 +631,7 @@ const Root: FC = () => {
                             height: '120px',
                             backgroundColor: '#4a148c',
                             border: '3px solid #9c27b0',
-                            marginBottom: '20px',
+                            marginBottom: '10px',
                         }}
                         onmouseover={(panel) => {
                             panel.style.backgroundColor = '#6a1b9a';
@@ -649,7 +649,7 @@ const Root: FC = () => {
                             flowChildren: 'down',
                         }}>
                             <Label 
-                                text="⚔️"
+                                text="👤"
                                 style={{
                                     fontSize: '50px',
                                     textAlign: 'center',
@@ -658,7 +658,7 @@ const Root: FC = () => {
                                 }}
                             />
                             <Label 
-                                text="装备"
+                                text="角色"
                                 style={{
                                     fontSize: '22px',
                                     color: '#ba68c8',
@@ -683,7 +683,7 @@ const Root: FC = () => {
                     {/* 仓库按钮 */}
                     <Button
                         onactivate={() => {
-                            $.Msg('[Root] 点击仓库按钮');
+                            $. Msg('[Root] 点击仓库按钮');
                             Game.EmitSound('ui.button_click');
                             setVaultVisible(true);
                             setMaterialsVisible(true);
@@ -742,21 +742,7 @@ const Root: FC = () => {
                     </Button>
                 </Panel>
 
-                {/* QRCODE 功能元素 */}
-                <PanoramaQRCode
-                    style={{ preTransformScale2d: dPressed ? `1.5` : `1` }}
-                    id="QRCode"
-                    onactivate={go}
-                    value={url}
-                    size={128}
-                    excavate={8}
-                    className={`QRCode`}
-                >
-                    <Image
-                        src="file://{images}/logos/dota_logo_bright.psd"
-                        style={{ width: `32px`, height: `32px`, horizontalAlign: `center`, verticalAlign: `center` }}
-                    />
-                </PanoramaQRCode>
+              
             </>
         )}
     </>

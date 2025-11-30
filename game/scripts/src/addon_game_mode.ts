@@ -19,6 +19,7 @@ import { ClassSystem } from './systems/class_system';  // ⭐ 新增导入
 import { InitSkillEquipSystem } from './systems/skill_equip_system';
 import { InitSkillPointSystem, SkillPointSystem } from './systems/skill_point_system';
 import { InitRuneSystem, RuneSystem } from './systems/rune_system';
+import { InitDamageTest } from './systems/damage_test';
 // 初始化模块
 if (IsServer()) {
     pcall(() => require('init_modifiers'));
@@ -30,6 +31,7 @@ declare global {
         ZoneDungeon?: ZoneDungeon;
     }
 }
+InitDamageTest();// 测试伤害计算系统
 InitRuneSystem();
 print('[GameMode] 护石系统已初始化');
 declare function require(module: string): void;
