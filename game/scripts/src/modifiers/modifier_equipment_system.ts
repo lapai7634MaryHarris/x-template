@@ -31,15 +31,28 @@ export class modifier_equipment_system extends BaseModifier {
     }
 
     OnCreated(params: any): void {
-        print("[modifier_equipment_system] ✓ Modifier created");
+        print("[modifier_equipment_system] Modifier created");
         
         if (IsServer()) {
-            const playerId = params.playerId;
-            const globalStats = _G.EquipmentStats?.[playerId];
+            // 从 parent 获取 playerId
+            const parent = this.GetParent();
+            if (! parent) {
+                print("[modifier_equipment_system] 无法获取 Parent");
+                return;
+            }
+            
+            const playerId = parent.GetPlayerOwnerID();
+            if (playerId === -1) {
+                print("[modifier_equipment_system] 无法获取 PlayerID");
+                return;
+            }
+            
+            // 从全局表读取属性
+            const globalStats = _G. EquipmentStats ?  _G.EquipmentStats[playerId] : null;
             
             if (globalStats) {
-                this.stats = {
-                    strength: globalStats.strength || 0,
+                this. stats = {
+                    strength: globalStats. strength || 0,
                     agility: globalStats.agility || 0,
                     intelligence: globalStats.intelligence || 0,
                     armor: globalStats.armor || 0,
@@ -51,16 +64,20 @@ export class modifier_equipment_system extends BaseModifier {
                     magic_resistance: globalStats.magic_resistance || 0,
                 };
                 
-                print(`[modifier_equipment_system] 接收装备属性:`);
-                print(`  攻击速度: +${this.stats.attack_speed}`);
+                print("[modifier_equipment_system] 属性已加载:");
+                print("  力量: +" + this.stats.strength);
+                print("  敏捷: +" + this.stats.agility);
+                print("  攻击力: +" + this.stats. attack_damage);
+                print("  攻击速度: +" + this. stats.attack_speed);
                 
-                // ⭐ 关键：用 SetStackCount 同步攻击速度到客户端
                 this.SetStackCount(this.stats.attack_speed);
                 
-                const parent = this.GetParent() as CDOTA_BaseNPC_Hero;
-                if (parent && parent.IsHero()) {
-                    parent.CalculateStatBonus(true);
+                const hero = parent as CDOTA_BaseNPC_Hero;
+                if (hero && hero.IsHero()) {
+                    hero. CalculateStatBonus(true);
                 }
+            } else {
+                print("[modifier_equipment_system] 玩家 " + playerId + " 没有装备属性数据");
             }
         }
     }
@@ -70,14 +87,13 @@ export class modifier_equipment_system extends BaseModifier {
             ModifierFunction.STATS_STRENGTH_BONUS,
             ModifierFunction.STATS_AGILITY_BONUS,
             ModifierFunction.STATS_INTELLECT_BONUS,
-            ModifierFunction.PHYSICAL_ARMOR_BONUS,
             ModifierFunction.HEALTH_BONUS,
             ModifierFunction.MANA_BONUS,
-            ModifierFunction.PREATTACK_BONUS_DAMAGE,
-            ModifierFunction.BASEATTACK_BONUSDAMAGE,
+            ModifierFunction. PREATTACK_BONUS_DAMAGE,
+            ModifierFunction. BASEATTACK_BONUSDAMAGE,
             ModifierFunction.ATTACKSPEED_BONUS_CONSTANT,
-            ModifierFunction.MOVESPEED_BONUS_CONSTANT,
-            ModifierFunction.MAGICAL_RESISTANCE_BONUS,
+            ModifierFunction. MOVESPEED_BONUS_CONSTANT,
+            ModifierFunction. MAGICAL_RESISTANCE_BONUS,
         ];
     }
 
@@ -91,10 +107,6 @@ export class modifier_equipment_system extends BaseModifier {
 
     GetModifierBonusStats_Intellect(): number {
         return this.stats.intelligence || 0;
-    }
-
-    GetModifierPhysicalArmorBonus(): number {
-        return 0;
     }
 
     GetModifierHealthBonus(): number {
@@ -113,12 +125,10 @@ export class modifier_equipment_system extends BaseModifier {
         return this.stats.attack_damage || 0;
     }
 
-    // ⭐ 攻击速度 - 服务器用 stats，客户端用 GetStackCount
     GetModifierAttackSpeedBonus_Constant(): number {
         if (IsServer()) {
             return this.stats.attack_speed || 0;
         } else {
-            // 客户端从 StackCount 读取
             return this.GetStackCount();
         }
     }

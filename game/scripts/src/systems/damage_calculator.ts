@@ -16,6 +16,7 @@ import {
 
 // ========== 玩家属性收集器 ==========
 export interface PlayerStats {
+    lifesteal: number;
     // 乘区2：增幅（加法叠加）
     increasedDamage: number;           // 通用增伤%
     increasedPhysicalDamage: number;   // 物理增伤%
@@ -69,7 +70,7 @@ export function createEmptyStats(): PlayerStats {
         spellDamage: 0,
         attackDamage: 0,
         dotDamage: 0,
-        
+        lifesteal: 0,
         cooldownReduction: 0,
         areaOfEffect: 0,
     };

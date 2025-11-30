@@ -209,64 +209,64 @@ export class EquipmentVaultSystem {
         return true;
     }
 
-    // ⭐ 获取或创建 Modifier
-    private static GetOrCreateModifier(playerId: PlayerID): CDOTA_Buff | null {
-        let modifier = this.playerModifiers[playerId];
-        
-        // 检查 modifier 是否有效
-        if (modifier && ! modifier.IsNull()) {
-            return modifier;
-        }
-        
-        print(`[EquipmentVaultSystem] Modifier 不存在或已失效，尝试重新获取/创建...`);
-        
-        const hero = PlayerResource.GetSelectedHeroEntity(playerId) as CDOTA_BaseNPC_Hero;
-        if (! hero || hero.IsNull()) {
-            print(`[EquipmentVaultSystem] ❌ 找不到英雄，无法获取/创建 Modifier`);
-            return null;
-        }
-        
-        // 先尝试查找现有的 modifier
-        const existingModifier = hero.FindModifierByName("modifier_equipment_system");
-        if (existingModifier && ! existingModifier.IsNull()) {
-            this.playerModifiers[playerId] = existingModifier;
-            print(`[EquipmentVaultSystem] ✓ 找到现有 Modifier`);
-            return existingModifier;
-        }
-        
-        // 记录基础护甲
-        if (this.playerBaseArmor[playerId] === undefined) {
-            this.playerBaseArmor[playerId] = hero.GetPhysicalArmorBaseValue();
-            print(`[EquipmentVaultSystem] 📝 记录基础护甲: ${this.playerBaseArmor[playerId]}`);
-        }
-        
-        // 初始化全局属性表
-        if (!_G.EquipmentStats[playerId]) {
-            _G.EquipmentStats[playerId] = {
-                strength: 0,
-                agility: 0,
-                intelligence: 0,
-                armor: 0,
-                health: 0,
-                mana: 0,
-                attack_damage: 0,
-                attack_speed: 0,
-                move_speed: 0,
-                magic_resistance: 0,
-            };
-        }
-        
-        // 创建新的 modifier
-        const newMod = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", { playerId: playerId });
-        if (newMod && !newMod.IsNull()) {
-const newMod = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
-            print(`[EquipmentVaultSystem] ✓ 创建新 Modifier 成功`);
-            return newMod;
-        }
-        
-        print(`[EquipmentVaultSystem] ❌ 创建 Modifier 失败`);
+// ⭐ 获取或创建 Modifier
+private static GetOrCreateModifier(playerId: PlayerID): CDOTA_Buff | null {
+    let modifier = this.playerModifiers[playerId];
+    
+    // 检查 modifier 是否有效
+    if (modifier && ! modifier.IsNull()) {
+        return modifier;
+    }
+    
+    print("[EquipmentVaultSystem] Modifier 不存在或已失效，尝试重新获取/创建.. .");
+    
+    const hero = PlayerResource.GetSelectedHeroEntity(playerId) as CDOTA_BaseNPC_Hero;
+    if (!hero || hero.IsNull()) {
+        print("[EquipmentVaultSystem] 找不到英雄，无法获取/创建 Modifier");
         return null;
     }
+    
+    // 先尝试查找现有的 modifier
+    const existingModifier = hero.FindModifierByName("modifier_equipment_system");
+    if (existingModifier && !existingModifier.IsNull()) {
+        this.playerModifiers[playerId] = existingModifier;
+        print("[EquipmentVaultSystem] 找到现有 Modifier");
+        return existingModifier;
+    }
+    
+    // 记录基础护甲
+    if (this.playerBaseArmor[playerId] === undefined) {
+        this.playerBaseArmor[playerId] = hero.GetPhysicalArmorBaseValue();
+        print("[EquipmentVaultSystem] 记录基础护甲: " + this.playerBaseArmor[playerId]);
+    }
+    
+    // 初始化全局属性表
+    if (!_G.EquipmentStats[playerId]) {
+        _G.EquipmentStats[playerId] = {
+            strength: 0,
+            agility: 0,
+            intelligence: 0,
+            armor: 0,
+            health: 0,
+            mana: 0,
+            attack_damage: 0,
+            attack_speed: 0,
+            move_speed: 0,
+            magic_resistance: 0,
+        };
+    }
+    
+    // 创建新的 modifier - 传空对象，modifier 自己获取 playerId
+    const newMod = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
+    if (newMod && !newMod.IsNull()) {
+        this.playerModifiers[playerId] = newMod;
+        print("[EquipmentVaultSystem] 创建新 Modifier 成功");
+        return newMod;
+    }
+    
+    print("[EquipmentVaultSystem] 创建 Modifier 失败");
+    return null;
+}
 
     // ⭐ 刷新装备属性
     private static RefreshEquipmentStats(playerId: PlayerID): void {
