@@ -63,22 +63,39 @@ export class SimpleDungeon {
                             rarity: item.rarity,
                         };
                         
-                        // ⭐ 修复：使用 Object.entries 安全遍历
+                        // ⭐ 安全复制 affixDetails
                         if (item.affixDetails) {
                             const affixArray: any[] = [];
-                            const entries = Object.entries(item.affixDetails as any);
-                            for (let i = 0; i < entries.length; i++) {
-                                const [_, affix] = entries[i];
-                                if (affix && typeof affix === 'object') {
-                                    affixArray.push({
-                                        position: (affix as any).position || 'prefix',
-                                        tier: (affix as any).tier || 1,
-                                        name: (affix as any).name || '',
-                                        description: (affix as any).description || '',
-                                        color: (affix as any).color || '#ffffff',
-                                    });
+                            
+                            if (Array.isArray(item.affixDetails)) {
+                                for (let i = 0; i < item.affixDetails.length; i++) {
+                                    const affix = item.affixDetails[i];
+                                    if (affix) {
+                                        affixArray.push({
+                                            position: affix.position || 'prefix',
+                                            tier: affix.tier || 1,
+                                            name: affix.name || '',
+                                            description: affix.description || '',
+                                            color: affix.color || '#ffffff',
+                                        });
+                                    }
+                                }
+                            } else {
+                                const entries = Object.entries(item.affixDetails as any);
+                                for (let i = 0; i < entries.length; i++) {
+                                    const [_, affix] = entries[i];
+                                    if (affix && typeof affix === 'object') {
+                                        affixArray.push({
+                                            position: (affix as any).position || 'prefix',
+                                            tier: (affix as any).tier || 1,
+                                            name: (affix as any).name || '',
+                                            description: (affix as any).description || '',
+                                            color: (affix as any).color || '#ffffff',
+                                        });
+                                    }
                                 }
                             }
+                            
                             if (affixArray.length > 0) {
                                 serialized.affixDetails = affixArray;
                             }
@@ -105,9 +122,10 @@ export class SimpleDungeon {
             if (EquipmentVaultSystem.EquipItem(playerId, index)) {
                 const player = PlayerResource.GetPlayer(playerId);
                 if (player) {
-                    // ⭐ 序列化仓库数据（修复版）
+                    // ⭐ 序列化仓库数据
                     const vault = EquipmentVaultSystem.GetVault(playerId);
                     const serializedVault: any[] = [];
+                    
                     vault.forEach((item) => {
                         const serialized: any = {
                             name: item.name,
@@ -117,47 +135,24 @@ export class SimpleDungeon {
                             rarity: item.rarity,
                         };
                         
-                        // ⭐ 修复：使用 Object.entries 安全遍历
+                        // ⭐ 安全复制 affixDetails
                         if (item.affixDetails) {
                             const affixArray: any[] = [];
-                            const entries = Object.entries(item.affixDetails as any);
-                            for (let i = 0; i < entries.length; i++) {
-                                const [_, affix] = entries[i];
-                                if (affix && typeof affix === 'object') {
-                                    affixArray.push({
-                                        position: (affix as any).position || 'prefix',
-                                        tier: (affix as any).tier || 1,
-                                        name: (affix as any).name || '',
-                                        description: (affix as any).description || '',
-                                        color: (affix as any).color || '#ffffff',
-                                    });
-                                }
-                            }
-                            if (affixArray.length > 0) {
-                                serialized.affixDetails = affixArray;
-                            }
-                        }
-                        
-                        serializedVault.push(serialized);
-                    });
-                    
-                    // ⭐ 序列化装备数据（修复版）
-                    const equipment = EquipmentVaultSystem.GetEquipment(playerId);
-                    const serializedEquipment: any = {};
-                    for (const slot in equipment) {
-                        const item = equipment[slot];
-                        if (item) {
-                            const itemData: any = {
-                                name: item.name,
-                                type: item.type,
-                                icon: item.icon,
-                                stats: item.stats,
-                                rarity: item.rarity,
-                            };
                             
-                            // ⭐ 修复：使用 Object.entries 安全遍历
-                            if (item.affixDetails) {
-                                const affixArray: any[] = [];
+                            if (Array.isArray(item.affixDetails)) {
+                                for (let i = 0; i < item.affixDetails.length; i++) {
+                                    const affix = item.affixDetails[i];
+                                    if (affix) {
+                                        affixArray.push({
+                                            position: affix.position || 'prefix',
+                                            tier: affix.tier || 1,
+                                            name: affix.name || '',
+                                            description: affix.description || '',
+                                            color: affix.color || '#ffffff',
+                                        });
+                                    }
+                                }
+                            } else {
                                 const entries = Object.entries(item.affixDetails as any);
                                 for (let i = 0; i < entries.length; i++) {
                                     const [_, affix] = entries[i];
@@ -171,6 +166,64 @@ export class SimpleDungeon {
                                         });
                                     }
                                 }
+                            }
+                            
+                            if (affixArray.length > 0) {
+                                serialized.affixDetails = affixArray;
+                            }
+                        }
+                        
+                        serializedVault.push(serialized);
+                    });
+                    
+                    // ⭐ 序列化装备数据
+                    const equipment = EquipmentVaultSystem.GetEquipment(playerId);
+                    const serializedEquipment: any = {};
+                    
+                    for (const slot in equipment) {
+                        const item = equipment[slot];
+                        if (item) {
+                            const itemData: any = {
+                                name: item.name,
+                                type: item.type,
+                                icon: item.icon,
+                                stats: item.stats,
+                                rarity: item.rarity,
+                            };
+                            
+                            // ⭐ 安全复制 affixDetails
+                            if (item.affixDetails) {
+                                const affixArray: any[] = [];
+                                
+                                if (Array.isArray(item.affixDetails)) {
+                                    for (let i = 0; i < item.affixDetails.length; i++) {
+                                        const affix = item.affixDetails[i];
+                                        if (affix) {
+                                            affixArray.push({
+                                                position: affix.position || 'prefix',
+                                                tier: affix.tier || 1,
+                                                name: affix.name || '',
+                                                description: affix.description || '',
+                                                color: affix.color || '#ffffff',
+                                            });
+                                        }
+                                    }
+                                } else {
+                                    const entries = Object.entries(item.affixDetails as any);
+                                    for (let i = 0; i < entries.length; i++) {
+                                        const [_, affix] = entries[i];
+                                        if (affix && typeof affix === 'object') {
+                                            affixArray.push({
+                                                position: (affix as any).position || 'prefix',
+                                                tier: (affix as any).tier || 1,
+                                                name: (affix as any).name || '',
+                                                description: (affix as any).description || '',
+                                                color: (affix as any).color || '#ffffff',
+                                            });
+                                        }
+                                    }
+                                }
+                                
                                 if (affixArray.length > 0) {
                                     itemData.affixDetails = affixArray;
                                 }
@@ -181,62 +234,38 @@ export class SimpleDungeon {
                             serializedEquipment[slot] = null;
                         }
                     }
-                    // ⭐ 发送数据前添加调试
-print(`[SimpleDungeon] ========== 准备发送数据 ==========`);
-print(`[SimpleDungeon] 仓库数量: ${serializedVault.length}`);
-print(`[SimpleDungeon] 装备槽位数量: ${Object.keys(serializedEquipment).length}`);
-
-// 检查每个仓库物品
-serializedVault.forEach((item, idx) => {
-    print(`[SimpleDungeon]   仓库[${idx}]: ${item.name}, affixDetails: ${item.affixDetails ?  item.affixDetails.length : 'null'}`);
-});
-
-// 检查每个装备槽位
-for (const slot in serializedEquipment) {
-    const item = serializedEquipment[slot];
-    if (item) {
-        print(`[SimpleDungeon]   装备[${slot}]: ${item.name}, affixDetails: ${item. affixDetails ? item.affixDetails.length : 'null'}`);
-    } else {
-        print(`[SimpleDungeon]   装备[${slot}]: null`);
-    }
-}
-
-print(`[SimpleDungeon] ========== 开始发送 ==========`);
-
-// ⭐ 分开发送，看哪个崩溃
-try {
-    (CustomGameEventManager. Send_ServerToPlayer as any)(player, 'update_vault_ui', {
-        items: serializedVault
-    });
-    print(`[SimpleDungeon] ✓ 仓库数据已发送`);
-} catch (e) {
-    print(`[SimpleDungeon] ❌ 发送仓库数据失败: ${e}`);
-}
-
-try {
-    (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_equipment_ui', {
-        equipment: serializedEquipment
-    });
-    print(`[SimpleDungeon] ✓ 装备数据已发送`);
-} catch (e) {
-    print(`[SimpleDungeon] ❌ 发送装备数据失败: ${e}`);
-}
-
-GameRules.SendCustomMessage(
-    "✅ 装备成功！",
-    playerId,
-    0
-);
-
-print(`[SimpleDungeon] 装备成功，已推送更新数据`);
+                    
+                    print(`[SimpleDungeon] ========== 准备发送数据 ==========`);
+                    print(`[SimpleDungeon] 仓库数量: ${serializedVault.length}`);
+                    print(`[SimpleDungeon] 装备槽位数量: ${Object.keys(serializedEquipment).length}`);
+                    
+                    // 检查每个仓库物品
+                    serializedVault.forEach((item, idx) => {
+                        print(`[SimpleDungeon]   仓库[${idx}]: ${item.name}, affixDetails: ${item.affixDetails ? item.affixDetails.length : 'nil'}`);
+                    });
+                    
+                    // 检查每个装备槽位
+                    for (const slot in serializedEquipment) {
+                        const item = serializedEquipment[slot];
+                        if (item) {
+                            print(`[SimpleDungeon]   装备[${slot}]: ${item.name}, affixDetails: ${item.affixDetails ? item.affixDetails.length : 'nil'}`);
+                        } else {
+                            print(`[SimpleDungeon]   装备[${slot}]: null`);
+                        }
+                    }
+                    
+                    print(`[SimpleDungeon] ========== 开始发送 ==========`);
+                    
                     // ⭐ 发送数据
                     (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_vault_ui', {
                         items: serializedVault
                     });
+                    print(`[SimpleDungeon] ✓ 仓库数据已发送`);
                     
                     (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_equipment_ui', {
                         equipment: serializedEquipment
                     });
+                    print(`[SimpleDungeon] ✓ 装备数据已发送`);
                     
                     GameRules.SendCustomMessage(
                         "✅ 装备成功！",
@@ -463,7 +492,7 @@ print(`[SimpleDungeon] 装备成功，已推送更新数据`);
                             print("[SimpleDungeon] ✓ Boss Manager initialized!");
                             
                             Timers.CreateTimer(1, () => {
-                                if (! boss.IsAlive()) return undefined;
+                                if (!boss.IsAlive()) return undefined;
                                 
                                 boss.RemoveModifierByName("modifier_invulnerable");
                                 print("[SimpleDungeon] ✓ Boss is now vulnerable!   Fight begins!");
@@ -684,14 +713,14 @@ print(`[SimpleDungeon] 装备成功，已推送更新数据`);
 
     private OnComplete(): void {
         print("=".repeat(50));
-        print("[SimpleDungeon] 🎉 DUNGEON COMPLETE!  🎉");
+        print("[SimpleDungeon] 🎉 DUNGEON COMPLETE!   🎉");
         print("=".repeat(50));
         
         if (this.playerId !== undefined) {
             LootSystem.GiveCompletionReward(this.playerId, this.currentDifficulty);
 
             Timers.CreateTimer(5.0, () => {
-                const hero = PlayerResource.GetSelectedHeroEntity(this.playerId!);
+                const hero = PlayerResource.GetSelectedHeroEntity(this.playerId! );
                 if (hero) {
                     FindClearSpaceForUnit(hero, SPAWN_POINT, true);
                     GameRules.SendCustomMessage(
