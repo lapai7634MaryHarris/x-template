@@ -78,7 +78,7 @@ export class EquipmentVaultSystem {
             // ⭐ 记录英雄的原始基础护甲（只记录一次）
             if (this.playerBaseArmor[playerId] === undefined) {
                 this.playerBaseArmor[playerId] = hero.GetPhysicalArmorBaseValue();
-                print(`[EquipmentVaultSystem] 📝 记录基础护甲: ${this.playerBaseArmor[playerId]}`);
+                print(`[EquipmentVaultSystem] 📝 记录基础护甲: ${this. playerBaseArmor[playerId]}`);
             }
             
             // 检查是否已经有 modifier
@@ -108,7 +108,7 @@ export class EquipmentVaultSystem {
             
             const modifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
             
-            if (modifier && !modifier.IsNull()) {
+            if (modifier && ! modifier.IsNull()) {
                 this.playerModifiers[playerId] = modifier;
                 print(`[EquipmentVaultSystem] ✓ Modifier 创建成功`);
                 this.RefreshEquipmentStats(playerId);
@@ -155,54 +155,51 @@ export class EquipmentVaultSystem {
         return this.playerEquipment[playerId];
     }
 
-// ⭐ 深拷贝装备项（避免引用共享）
-private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
-    const cloned: ExternalRewardItem = {
-        name: item.name,
-        type: item.type,
-        icon: item.icon,
-        rarity: item.rarity,
-        stats: [],
-        affixDetails: undefined,
-    };
-    
-    // 深拷贝 stats
-    for (let i = 0; i < item.stats.length; i++) {
-        cloned.stats.push({
-            attribute: item.stats[i]. attribute,
-            value: item. stats[i].value
-        });
-    }
-    
-    // 深拷贝 affixDetails
-    if (item. affixDetails && item.affixDetails.length > 0) {
-        cloned.affixDetails = [];
+    // ⭐ 深拷贝装备项（避免引用共享）
+    private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
+        const cloned: ExternalRewardItem = {
+            name: item.name,
+            type: item.type,
+            icon: item.icon,
+            rarity: item.rarity,
+            stats: [],
+            affixDetails: undefined,
+        };
         
-        // ⭐ 使用标准 for 循环遍历数组
-        for (let i = 0; i < item.affixDetails.length; i++) {
-            const affix = item.affixDetails[i];
-            if (affix && affix.name) {
-                cloned.affixDetails.push({
-                    position: affix.position,
-                    tier: affix.tier,
-                    name: affix.name,
-                    description: affix.description,
-                    color: affix.color,
-                });
-            }
+        // 深拷贝 stats
+        for (let i = 0; i < item.stats.length; i++) {
+            cloned.stats.push({
+                attribute: item.stats[i].attribute,
+                value: item.stats[i].value
+            });
         }
         
-        print(`[EquipmentVaultSystem] 深拷贝装备 ${item.name}，词缀: ${cloned.affixDetails. length} 个`);
+        // 深拷贝 affixDetails（现在一定是数组或 undefined）
+        if (item.affixDetails && item.affixDetails.length > 0) {
+            cloned.affixDetails = [];
+            for (let i = 0; i < item.affixDetails.length; i++) {
+                const affix = item.affixDetails[i];
+                if (affix && affix.name) {
+                    cloned.affixDetails.push({
+                        position: affix.position,
+                        tier: affix. tier,
+                        name: affix.name,
+                        description: affix.description,
+                        color: affix.color,
+                    });
+                }
+            }
+            print(`[EquipmentVaultSystem] 深拷贝装备 ${item.name}，词缀: ${cloned.affixDetails.length} 个`);
+        }
+        
+        return cloned;
     }
-    
-    return cloned;
-}
 
     // 从仓库装备物品
     static EquipItem(playerId: PlayerID, index: number): boolean {
         const vault = this.GetVault(playerId);
         
-        if (index < 0 || index >= vault. length) {
+        if (index < 0 || index >= vault.length) {
             print(`[EquipmentVaultSystem] ❌ 无效的索引：${index}`);
             return false;
         }
@@ -220,7 +217,7 @@ private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
         
         const equipment = this.GetEquipment(playerId);
         if (equipment[slot]) {
-            const oldItem = equipment[slot]!;
+            const oldItem = equipment[slot]! ;
             print(`[EquipmentVaultSystem] ${slot} 槽位已有装备：${oldItem.name}，卸下旧装备`);
             vault.push(oldItem);
         }
@@ -280,7 +277,7 @@ private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
         
         // 记录基础护甲
         if (this.playerBaseArmor[playerId] === undefined) {
-            this.playerBaseArmor[playerId] = hero. GetPhysicalArmorBaseValue();
+            this.playerBaseArmor[playerId] = hero.GetPhysicalArmorBaseValue();
             print("[EquipmentVaultSystem] 记录基础护甲: " + this.playerBaseArmor[playerId]);
         }
         
@@ -430,7 +427,7 @@ private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
             
             // ⭐ 使用对象而不是数组存储 stats
             const statsObj: any = {};
-            for (let i = 0; i < item.stats. length; i++) {
+            for (let i = 0; i < item.stats.length; i++) {
                 statsObj[i. toString()] = {
                     attribute: item.stats[i].attribute,
                     value: item.stats[i]. value
@@ -441,21 +438,19 @@ private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
             // ⭐ 使用对象而不是数组存储 affixDetails
             if (item.affixDetails) {
                 const affixObj: any = {};
-                const entries = Object.entries(item.affixDetails as any);
-                
-                for (let i = 0; i < entries.length; i++) {
-                    const [_, affix] = entries[i];
-                    if (affix && typeof affix === 'object') {
+                for (let i = 0; i < item.affixDetails.length; i++) {
+                    const affix = item.affixDetails[i];
+                    if (affix && affix.name) {
                         affixObj[i.toString()] = {
-                            position: (affix as any).position,
-                            tier: (affix as any).tier,
-                            name: (affix as any).name,
-                            description: (affix as any).description,
-                            color: (affix as any).color,
+                            position: affix.position,
+                            tier: affix. tier,
+                            name: affix.name,
+                            description: affix.description,
+                            color: affix.color,
                         };
                     }
                 }
-                serialized.affixDetails = affixObj;
+                serialized. affixDetails = affixObj;
             }
             
             serializedItems[idx. toString()] = serialized;
@@ -469,7 +464,7 @@ private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
                     name: item.name,
                     type: item.type,
                     icon: item.icon,
-                    rarity: item. rarity,
+                    rarity: item.rarity,
                 };
                 
                 // ⭐ 使用对象存储 stats
@@ -485,17 +480,15 @@ private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
                 // ⭐ 使用对象存储 affixDetails
                 if (item.affixDetails) {
                     const affixObj: any = {};
-                    const entries = Object.entries(item.affixDetails as any);
-                    
-                    for (let i = 0; i < entries.length; i++) {
-                        const [_, affix] = entries[i];
-                        if (affix && typeof affix === 'object') {
+                    for (let i = 0; i < item.affixDetails.length; i++) {
+                        const affix = item.affixDetails[i];
+                        if (affix && affix.name) {
                             affixObj[i.toString()] = {
-                                position: (affix as any).position,
-                                tier: (affix as any).tier,
-                                name: (affix as any).name,
-                                description: (affix as any).description,
-                                color: (affix as any). color,
+                                position: affix.position,
+                                tier: affix. tier,
+                                name: affix.name,
+                                description: affix.description,
+                                color: affix.color,
                             };
                         }
                     }
@@ -517,7 +510,7 @@ private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
         } as any);
     }
 
-    // ⭐ 持久化加载（修复版）
+    // ⭐ 持久化加载（修复版 - 确保 affixDetails 一定是数组）
     private static LoadFromPersistentStorage(playerId: PlayerID): void {
         const data = CustomNetTables.GetTableValue("player_vaults", playerId.toString()) as any;
         
@@ -527,47 +520,51 @@ private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
                 for (const key in data.items) {
                     const item = data.items[key];
                     
-                    // ⭐ 安全转换 stats
+                    // ⭐ 安全转换 stats（确保是数组）
                     let statsArray: any[] = [];
                     if (item.stats) {
-                        if (Array.isArray(item. stats)) {
+                        if (Array.isArray(item.stats)) {
                             statsArray = item.stats;
                         } else {
-                            // 从对象转换为数组
                             for (const k in item.stats) {
                                 const stat = item.stats[k];
                                 if (stat && stat.attribute) {
-                                    statsArray. push(stat);
+                                    statsArray.push(stat);
                                 }
                             }
                         }
                     }
                     
-                    // ⭐ 安全转换 affixDetails
+                    // ⭐ 安全转换 affixDetails（确保是数组）
                     let affixDetailsArray: any[] | undefined = undefined;
                     if (item.affixDetails) {
                         const tempArr: any[] = [];
                         
                         if (Array.isArray(item. affixDetails)) {
-                            tempArr.push(...item.affixDetails);
-                        } else if (typeof item.affixDetails === 'object') {
-                            // 从对象转换为数组
+                            // 已经是数组，直接复制
+                            for (let i = 0; i < item. affixDetails.length; i++) {
+                                if (item.affixDetails[i] && item.affixDetails[i].name) {
+                                    tempArr.push(item. affixDetails[i]);
+                                }
+                            }
+                        } else if (typeof item. affixDetails === 'object') {
+                            // 是对象，转成数组
                             for (const k in item.affixDetails) {
                                 const affix = item.affixDetails[k];
-                                if (affix && affix.name) {  // 检查是否是有效词缀
-                                    tempArr. push(affix);
+                                if (affix && affix.name) {
+                                    tempArr.push(affix);
                                 }
                             }
                         }
                         
                         if (tempArr.length > 0) {
                             affixDetailsArray = tempArr;
-                            print(`[EquipmentVaultSystem] 加载仓库装备 ${item.name}，词缀数量: ${tempArr.length}`);
+                            print(`[EquipmentVaultSystem] ✓ 加载仓库装备 ${item. name}，词缀: ${tempArr.length} 个`);
                         }
                     }
                     
                     items.push({ 
-                        name: item. name, 
+                        name: item.name, 
                         type: item.type, 
                         icon: item.icon, 
                         stats: statsArray,
@@ -579,7 +576,7 @@ private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
                 print(`[EquipmentVaultSystem] 从存储加载了 ${items.length} 件仓库装备`);
             }
             
-            if (data. equipment) {
+            if (data.equipment) {
                 const equipment: { [slot: string]: ExternalRewardItem | null } = {};
                 for (const slot in data.equipment) {
                     const item = data.equipment[slot];
@@ -592,7 +589,7 @@ private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
                             } else {
                                 for (const k in item.stats) {
                                     const stat = item.stats[k];
-                                    if (stat && stat. attribute) {
+                                    if (stat && stat.attribute) {
                                         statsArray.push(stat);
                                     }
                                 }
@@ -605,19 +602,23 @@ private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
                             const tempArr: any[] = [];
                             
                             if (Array.isArray(item.affixDetails)) {
-                                tempArr.push(...item.affixDetails);
+                                for (let i = 0; i < item.affixDetails.length; i++) {
+                                    if (item.affixDetails[i] && item.affixDetails[i].name) {
+                                        tempArr.push(item.affixDetails[i]);
+                                    }
+                                }
                             } else if (typeof item.affixDetails === 'object') {
                                 for (const k in item.affixDetails) {
                                     const affix = item.affixDetails[k];
                                     if (affix && affix.name) {
-                                        tempArr.push(affix);
+                                        tempArr. push(affix);
                                     }
                                 }
                             }
                             
                             if (tempArr.length > 0) {
                                 affixDetailsArray = tempArr;
-                                print(`[EquipmentVaultSystem] 加载装备槽 ${slot}: ${item.name}，词缀数量: ${tempArr.length}`);
+                                print(`[EquipmentVaultSystem] ✓ 加载装备槽 ${slot}: ${item. name}，词缀: ${tempArr.length} 个`);
                             }
                         }
                         
@@ -635,7 +636,6 @@ private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
                 }
                 this.playerEquipment[playerId] = equipment;
                 
-                // 计算已装备数量
                 let equipCount = 0;
                 for (const slot in equipment) {
                     if (equipment[slot]) equipCount++;
