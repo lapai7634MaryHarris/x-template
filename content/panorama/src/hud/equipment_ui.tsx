@@ -1,7 +1,25 @@
 import React, { useState, useEffect } from 'react';
 
 interface EquipmentStat { attribute: string; value: number; }
-interface EquippedItem { name: string; type: string; icon: string; stats: EquipmentStat[]; }
+
+// ⭐ 新增：词缀详情接口
+interface AffixDetail {
+    position: 'prefix' | 'suffix';
+    tier: number;
+    name: string;
+    description: string;
+    color?: string;
+}
+
+// ⭐ 修改：添加 affixDetails
+interface EquippedItem { 
+    name: string; 
+    type: string; 
+    icon: string; 
+    stats: EquipmentStat[]; 
+    rarity?: number;
+    affixDetails?: AffixDetail[];
+}
 
 interface CharStats {
     increasedDamage: number;
@@ -71,6 +89,25 @@ const SLOT_NAMES: Record<string, string> = {
     boots: '鞋子' 
 };
 
+// ⭐ 辅助函数：提取前后缀
+const extractAffixes = (affixDetails: any) => {
+    const prefixes: any[] = [];
+    const suffixes: any[] = [];
+    
+    if (affixDetails) {
+        for (const key in affixDetails) {
+            const affix = affixDetails[key];
+            if (affix.position === 'prefix') {
+                prefixes.push(affix);
+            } else if (affix.position === 'suffix') {
+                suffixes.push(affix);
+            }
+        }
+    }
+    
+    return { prefixes, suffixes };
+};
+
 export const EquipmentUI: React.FC<{ visible: boolean; onClose: () => void }> = ({ visible, onClose }) => {
     const [tab, setTab] = useState(0);
     
@@ -89,72 +126,125 @@ export const EquipmentUI: React.FC<{ visible: boolean; onClose: () => void }> = 
 
     // 数据加载
     useEffect(() => {
-        if (! visible) return;
-        
-        $. Msg('[EquipmentUI] 请求数据.. .');
+        if (!  visible) return;
         
         (GameEvents.SendCustomGameEventToServer as any)('request_equipment_data', { PlayerID: Players.GetLocalPlayer() });
         (GameEvents.SendCustomGameEventToServer as any)('request_character_stats', { PlayerID: Players.GetLocalPlayer() });
 
         // 监听装备数据
         const h1 = GameEvents.Subscribe('update_equipment_ui', (data: any) => {
-            $. Msg('[EquipmentUI] 收到装备数据');
             if (data && data.equipment) {
                 const eq = data.equipment;
                 
-                // 处理每个槽位
+                // ⭐ 处理每个槽位（添加 affixDetails）
                 if (eq.helmet) {
-                    const statsArr = eq.helmet.stats ?  (Array.isArray(eq.helmet. stats) ? eq.helmet.stats : Object.values(eq.helmet.stats)) : [];
-                    setHelmet({ name: eq.helmet.name || '', type: eq.helmet.type || '', icon: eq.helmet.icon || '', stats: statsArr as EquipmentStat[] });
+                    const statsArr = eq.helmet.stats ?   (Array.isArray(eq.helmet. stats) ? eq.helmet.stats : Object.values(eq.helmet.stats)) : [];
+                    setHelmet({ 
+                        name: eq.helmet.name || '', 
+                        type: eq. helmet.type || '', 
+                        icon: eq.helmet.icon || '', 
+                        stats: statsArr as EquipmentStat[],
+                        rarity: eq.helmet.rarity,
+                        affixDetails: eq.helmet.affixDetails
+                    });
                 } else {
                     setHelmet(null);
                 }
                 
                 if (eq.necklace) {
-                    const statsArr = eq.necklace.stats ?  (Array.isArray(eq. necklace.stats) ? eq.necklace.stats : Object.values(eq.necklace.stats)) : [];
-                    setNecklace({ name: eq.necklace.name || '', type: eq.necklace. type || '', icon: eq.necklace.icon || '', stats: statsArr as EquipmentStat[] });
+                    const statsArr = eq.necklace.stats ?   (Array.isArray(eq.necklace.stats) ?  eq.necklace.stats : Object.values(eq.necklace.stats)) : [];
+                    setNecklace({ 
+                        name: eq.necklace.name || '', 
+                        type: eq.necklace.type || '', 
+                        icon: eq.necklace. icon || '', 
+                        stats: statsArr as EquipmentStat[],
+                        rarity: eq.necklace. rarity,
+                        affixDetails: eq.necklace. affixDetails
+                    });
                 } else {
                     setNecklace(null);
                 }
                 
                 if (eq.ring) {
-                    const statsArr = eq.ring.stats ? (Array. isArray(eq.ring.stats) ? eq.ring.stats : Object.values(eq.ring. stats)) : [];
-                    setRing({ name: eq.ring.name || '', type: eq. ring.type || '', icon: eq.ring.icon || '', stats: statsArr as EquipmentStat[] });
+                    const statsArr = eq.ring.stats ?  (Array.isArray(eq. ring.stats) ? eq.ring.stats : Object.values(eq.ring.stats)) : [];
+                    setRing({ 
+                        name: eq.ring. name || '', 
+                        type: eq.ring.type || '', 
+                        icon: eq. ring.icon || '', 
+                        stats: statsArr as EquipmentStat[],
+                        rarity: eq.ring. rarity,
+                        affixDetails: eq.ring.affixDetails
+                    });
                 } else {
                     setRing(null);
                 }
                 
                 if (eq.trinket) {
-                    const statsArr = eq.trinket.stats ? (Array.isArray(eq.trinket.stats) ? eq.trinket.stats : Object.values(eq.trinket.stats)) : [];
-                    setTrinket({ name: eq.trinket.name || '', type: eq.trinket.type || '', icon: eq. trinket.icon || '', stats: statsArr as EquipmentStat[] });
+                    const statsArr = eq.trinket.stats ?  (Array.isArray(eq. trinket.stats) ? eq. trinket.stats : Object.values(eq.trinket.stats)) : [];
+                    setTrinket({ 
+                        name: eq.trinket.name || '', 
+                        type: eq. trinket.type || '', 
+                        icon: eq.trinket.icon || '', 
+                        stats: statsArr as EquipmentStat[],
+                        rarity: eq.trinket. rarity,
+                        affixDetails: eq.trinket.affixDetails
+                    });
                 } else {
                     setTrinket(null);
                 }
                 
-                if (eq.weapon) {
-                    const statsArr = eq.weapon.stats ? (Array. isArray(eq.weapon.stats) ? eq.weapon.stats : Object.values(eq.weapon. stats)) : [];
-                    setWeapon({ name: eq. weapon.name || '', type: eq.weapon.type || '', icon: eq.weapon.icon || '', stats: statsArr as EquipmentStat[] });
+                if (eq. weapon) {
+                    const statsArr = eq.weapon.stats ?  (Array.isArray(eq. weapon.stats) ? eq.weapon.stats : Object.values(eq.weapon.stats)) : [];
+                    setWeapon({ 
+                        name: eq.weapon.name || '', 
+                        type: eq.weapon.type || '', 
+                        icon: eq.weapon.icon || '', 
+                        stats: statsArr as EquipmentStat[],
+                        rarity: eq.weapon.rarity,
+                        affixDetails: eq.weapon.affixDetails
+                    });
                 } else {
                     setWeapon(null);
                 }
                 
-                if (eq.armor) {
-                    const statsArr = eq.armor.stats ? (Array.isArray(eq.armor. stats) ? eq.armor.stats : Object.values(eq.armor.stats)) : [];
-                    setArmor({ name: eq.armor.name || '', type: eq.armor.type || '', icon: eq.armor.icon || '', stats: statsArr as EquipmentStat[] });
+                if (eq. armor) {
+                    const statsArr = eq.armor.stats ?  (Array.isArray(eq. armor.stats) ? eq.armor.stats : Object.values(eq.armor.stats)) : [];
+                    setArmor({ 
+                        name: eq.armor.name || '', 
+                        type: eq.armor.type || '', 
+                        icon: eq.armor.icon || '', 
+                        stats: statsArr as EquipmentStat[],
+                        rarity: eq.armor.rarity,
+                        affixDetails: eq.armor.affixDetails
+                    });
                 } else {
                     setArmor(null);
                 }
                 
-                if (eq.belt) {
-                    const statsArr = eq.belt.stats ? (Array.isArray(eq.belt.stats) ? eq.belt. stats : Object.values(eq. belt.stats)) : [];
-                    setBelt({ name: eq. belt.name || '', type: eq.belt.type || '', icon: eq.belt.icon || '', stats: statsArr as EquipmentStat[] });
+                if (eq. belt) {
+                    const statsArr = eq.belt.stats ?  (Array.isArray(eq. belt.stats) ? eq.belt.stats : Object.values(eq.belt.stats)) : [];
+                    setBelt({ 
+                        name: eq.belt.name || '', 
+                        type: eq.belt.type || '', 
+                        icon: eq.belt.icon || '', 
+                        stats: statsArr as EquipmentStat[],
+                        rarity: eq.belt.rarity,
+                        affixDetails: eq.belt.affixDetails
+                    });
                 } else {
                     setBelt(null);
                 }
                 
                 if (eq.boots) {
                     const statsArr = eq. boots.stats ? (Array.isArray(eq.boots.stats) ? eq.boots.stats : Object.values(eq.boots.stats)) : [];
-                    setBoots({ name: eq.boots. name || '', type: eq.boots.type || '', icon: eq. boots.icon || '', stats: statsArr as EquipmentStat[] });
+                    setBoots({ 
+                        name: eq.boots.name || '', 
+                        type: eq.boots.type || '', 
+                        icon: eq.boots.icon || '', 
+                        stats: statsArr as EquipmentStat[],
+                        rarity: eq.boots.rarity,
+                        affixDetails: eq. boots.affixDetails
+                    });
                 } else {
                     setBoots(null);
                 }
@@ -163,9 +253,7 @@ export const EquipmentUI: React.FC<{ visible: boolean; onClose: () => void }> = 
         
         // 监听角色属性数据
         const h2 = GameEvents.Subscribe('update_character_stats', (data: any) => {
-            $. Msg('[EquipmentUI] 收到角色属性数据');
             if (data) {
-                // 安全处理 moreDamageValues 数组
                 const moreArr = data.moreDamageValues;
                 let safeMoreArr: number[] = [];
                 if (moreArr && typeof moreArr === 'object') {
@@ -175,25 +263,25 @@ export const EquipmentUI: React.FC<{ visible: boolean; onClose: () => void }> = 
                 }
                 
                 setCharStats({
-                    increasedDamage: data. increasedDamage || 0,
-                    increasedPhysicalDamage: data.increasedPhysicalDamage || 0,
-                    increasedElementalDamage: data. increasedElementalDamage || 0,
-                    increasedFireDamage: data.increasedFireDamage || 0,
+                    increasedDamage: data.increasedDamage || 0,
+                    increasedPhysicalDamage: data. increasedPhysicalDamage || 0,
+                    increasedElementalDamage: data.increasedElementalDamage || 0,
+                    increasedFireDamage: data. increasedFireDamage || 0,
                     increasedColdDamage: data.increasedColdDamage || 0,
-                    increasedLightningDamage: data.increasedLightningDamage || 0,
+                    increasedLightningDamage: data. increasedLightningDamage || 0,
                     moreDamageValues: safeMoreArr,
                     critChance: data.critChance || 5,
                     critMultiplier: data.critMultiplier || 150,
                     projectileDamage: data.projectileDamage || 0,
                     areaDamage: data.areaDamage || 0,
                     meleeDamage: data.meleeDamage || 0,
-                    spellDamage: data. spellDamage || 0,
+                    spellDamage: data.spellDamage || 0,
                     attackDamage: data.attackDamage || 0,
                     dotDamage: data.dotDamage || 0,
-                    cooldownReduction: data.cooldownReduction || 0,
+                    cooldownReduction: data. cooldownReduction || 0,
                     areaOfEffect: data.areaOfEffect || 0,
                     attackSpeed: data.attackSpeed || 0,
-                    castSpeed: data.castSpeed || 0,
+                    castSpeed: data. castSpeed || 0,
                     lifesteal: data.lifesteal || 0,
                 });
             }
@@ -209,42 +297,32 @@ export const EquipmentUI: React.FC<{ visible: boolean; onClose: () => void }> = 
 
     // 卸下装备
     const unequipItem = (slot: string) => {
-        $. Msg('[EquipmentUI] 卸下装备: ' + slot);
         (GameEvents.SendCustomGameEventToServer as any)('unequip_item', { PlayerID: Players.GetLocalPlayer(), slot: slot });
         Game.EmitSound('ui. crafting_gem_create');
     };
 
     // 获取品质颜色
     const getQualityColor = (item: EquippedItem): string => {
+        if (item.rarity !== undefined) {
+            const rarityColors: Record<number, string> = {
+                0: '#c8c8c8',  // 普通
+                1: '#8888ff',  // 魔法
+                2: '#ffff77',  // 稀有
+                3: '#ff8800',  // 传说
+            };
+            return rarityColors[item.rarity] || '#9d9d9d';
+        }
+        
         const statsArr = item.stats || [];
         let total = 0;
         for (let i = 0; i < statsArr.length; i++) {
             total += statsArr[i]. value || 0;
         }
-        if (total >= 50) return '#ff8000';  // 橙色 - 传说
-        if (total >= 35) return '#a335ee';  // 紫色 - 史诗
-        if (total >= 20) return '#0070dd';  // 蓝色 - 稀有
-        if (total >= 10) return '#1eff00';  // 绿色 - 优秀
-        return '#9d9d9d';                   // 灰色 - 普通
-    };
-
-    // 计算总属性
-    const getTotalStats = (): Record<string, number> => {
-        const result: Record<string, number> = {};
-        const items = [helmet, necklace, ring, trinket, weapon, armor, belt, boots];
-        
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            if (item && item.stats) {
-                for (let j = 0; j < item.stats.length; j++) {
-                    const s = item.stats[j];
-                    if (s && s.attribute) {
-                        result[s.attribute] = (result[s.attribute] || 0) + (s.value || 0);
-                    }
-                }
-            }
-        }
-        return result;
+        if (total >= 50) return '#ff8000';
+        if (total >= 35) return '#a335ee';
+        if (total >= 20) return '#0070dd';
+        if (total >= 10) return '#1eff00';
+        return '#9d9d9d';
     };
 
     // 计算装备数量
@@ -261,8 +339,6 @@ export const EquipmentUI: React.FC<{ visible: boolean; onClose: () => void }> = 
         return count;
     };
 
-    const totalStats = getTotalStats();
-    const totalStatsKeys = Object.keys(totalStats);
     const equipCount = getEquipCount();
 
     // 计算伤害乘区
@@ -281,9 +357,11 @@ export const EquipmentUI: React.FC<{ visible: boolean; onClose: () => void }> = 
     const EquipSlot: React.FC<{ item: EquippedItem | null; slotName: string }> = ({ item, slotName }) => {
         const hasItem = item !== null;
         const slotLabel = SLOT_NAMES[slotName] || slotName;
-        const slotIcon = SLOT_ICONS[slotName] || '? ';
+        const slotIcon = SLOT_ICONS[slotName] || '?  ';
         const qualityColor = hasItem ? getQualityColor(item) : '#3a3a3a';
-        const statsArr = hasItem && item.stats ? item.stats : [];
+        
+        // ⭐ 提取前后缀
+        const { prefixes, suffixes } = hasItem && item.affixDetails ? extractAffixes(item.affixDetails) : { prefixes: [], suffixes: [] };
         
         return (
             <Panel 
@@ -291,7 +369,7 @@ export const EquipmentUI: React.FC<{ visible: boolean; onClose: () => void }> = 
                 onactivate={() => { if (hasItem) unequipItem(slotName); }} 
                 style={{ 
                     width: '220px', 
-                    height: '130px', 
+                    height: '150px', 
                     margin: '6px', 
                     backgroundColor: hasItem ? '#1a1a1a' : '#0a0a0a', 
                     border: hasItem ? '3px solid ' + qualityColor : '2px solid #3a3a3a', 
@@ -301,7 +379,7 @@ export const EquipmentUI: React.FC<{ visible: boolean; onClose: () => void }> = 
             >
                 {/* 图标区域 */}
                 <Panel style={{ width: '70px', height: '70px', backgroundColor: '#0a0a0a', border: '1px solid #555' }}>
-                    {hasItem ?  (
+                    {hasItem ?   (
                         <Image src={item.icon} style={{ width: '100%', height: '100%' }} />
                     ) : (
                         <Label text={slotIcon} style={{ fontSize: '36px', color: '#555', horizontalAlign: 'center', verticalAlign: 'center' }} />
@@ -313,32 +391,30 @@ export const EquipmentUI: React.FC<{ visible: boolean; onClose: () => void }> = 
                     <Label 
                         text={hasItem ? item.name : slotLabel} 
                         style={{ 
-                            fontSize: '14px', 
-                            color: hasItem ?  qualityColor : '#666',
+                            fontSize: '13px', 
+                            color: hasItem ?   qualityColor : '#666',
                             fontWeight: 'bold',
                             marginBottom: '5px'
                         }} 
                     />
                     
-                    {/* 显示属性 */}
-                    {hasItem && statsArr.length > 0 && (
+                    {/* ⭐ 显示前缀 */}
+                    {hasItem && prefixes.length > 0 && prefixes.map((affix: any, idx: number) => (
                         <Label 
-                            text={'+' + (statsArr[0].value || 0) + ' ' + (statsArr[0].attribute || '')} 
-                            style={{ fontSize: '12px', color: '#0f0', marginBottom: '2px' }} 
+                            key={`prefix-${idx}`}
+                            text={`[T${affix.tier}] ${affix.name} ${affix.description}`}
+                            style={{ fontSize: '10px', color: '#8888ff', marginBottom: '1px' }} 
                         />
-                    )}
-                    {hasItem && statsArr.length > 1 && (
+                    ))}
+                    
+                    {/* ⭐ 显示后缀 */}
+                    {hasItem && suffixes.length > 0 && suffixes.map((affix: any, idx: number) => (
                         <Label 
-                            text={'+' + (statsArr[1].value || 0) + ' ' + (statsArr[1]. attribute || '')} 
-                            style={{ fontSize: '12px', color: '#0f0', marginBottom: '2px' }} 
+                            key={`suffix-${idx}`}
+                            text={`[T${affix.tier}] ${affix.name} ${affix.description}`}
+                            style={{ fontSize: '10px', color: '#ffff77', marginBottom: '1px' }} 
                         />
-                    )}
-                    {hasItem && statsArr.length > 2 && (
-                        <Label 
-                            text={'+' + (statsArr[2].value || 0) + ' ' + (statsArr[2].attribute || '')} 
-                            style={{ fontSize: '12px', color: '#0f0', marginBottom: '2px' }} 
-                        />
-                    )}
+                    ))}
                     
                     {hasItem && (
                         <Label text="点击卸下" style={{ fontSize: '10px', color: '#888', marginTop: '5px', fontStyle: 'italic' }} />
@@ -361,35 +437,12 @@ export const EquipmentUI: React.FC<{ visible: boolean; onClose: () => void }> = 
 
             {/* 中间区域 */}
             <Panel style={{ width: '370px', height: '100%', flowChildren: 'down', padding: '15px' }}>
-                <Label text="总属性加成" style={{ fontSize: '22px', color: '#ffd700', marginBottom: '15px', fontWeight: 'bold' }} />
+                <Label text="装备预览" style={{ fontSize: '22px', color: '#ffd700', marginBottom: '15px', fontWeight: 'bold' }} />
                 
-                {/* 属性列表 */}
-                <Panel style={{ 
-                    width: '100%', 
-                    height: '220px',
-                    backgroundColor: '#0a0a0a', 
-                    border: '2px solid #555', 
-                    padding: '15px', 
-                    flowChildren: 'down',
-                    marginBottom: '15px'
-                }}>
-                    {totalStatsKeys.length > 0 ? (
-                        totalStatsKeys.map(attr => (
-                            <Label 
-                                key={attr} 
-                                text={attr + ': +' + totalStats[attr]} 
-                                style={{ fontSize: '16px', color: '#0f0', marginBottom: '8px', fontWeight: 'bold' }} 
-                            />
-                        ))
-                    ) : (
-                        <Label text="未装备任何装备" style={{ fontSize: '14px', color: '#666', horizontalAlign: 'center', marginTop: '80px' }} />
-                    )}
-                </Panel>
-
                 {/* 角色模型区域 */}
                 <Panel style={{ 
                     width: '100%', 
-                    height: '280px', 
+                    height: '500px', 
                     backgroundColor: '#0a0a0a', 
                     border: '2px solid #555' 
                 }}>
@@ -454,7 +507,7 @@ export const EquipmentUI: React.FC<{ visible: boolean; onClose: () => void }> = 
                 <Panel style={{ width: '100%', height: '2px', backgroundColor: '#f80', opacity: '0.5', marginBottom: '10px' }} />
                 <Label text="独立乘法叠加 (珍贵)" style={{ fontSize: '10px', color: '#666', marginBottom: '15px' }} />
                 
-                {moreArr.length > 0 ?  (
+                {moreArr.length > 0 ?   (
                     <Panel style={{ flowChildren: 'down', marginBottom: '15px' }}>
                         {moreArr.map((v, i) => (
                             <Panel key={i} style={{ flowChildren: 'right', width: '100%', marginBottom: '6px' }}>

@@ -46,35 +46,44 @@ export class SimpleDungeon {
                 this.StartDungeon(playerId);
             }
             
-           if (text === "-vault" || text === "vault" || text === "-v" || text === "v") {
+          if (text === "-vault" || text === "vault" || text === "-v" || text === "v") {
     const player = PlayerResource.GetPlayer(playerId);
     if (player) {
         (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'show_vault_ui', {});
         
         const vault = EquipmentVaultSystem.GetVault(playerId);
-        
-        // ⭐ 序列化仓库数据
         const serializedVault: any[] = [];
+        
         vault.forEach((item) => {
-            serializedVault.push({
+            const serialized: any = {
                 name: item.name,
                 type: item.type,
                 icon: item.icon,
                 stats: item.stats,
                 rarity: item.rarity,
-                // ⭐ 序列化 affixDetails
-                affixDetails: item.affixDetails ?  item.affixDetails. map(affix => ({
-                    position: affix.position,
-                    tier: affix.tier,
-                    name: affix.name,
-                    description: affix.description,
-                    color: affix.color,
-                })) : undefined,
-            });
+            };
+            
+            // ⭐ 手动构建 affixDetails
+            if (item.affixDetails && item.affixDetails.length > 0) {
+                const affixArray: any[] = [];
+                for (let i = 0; i < item.affixDetails.length; i++) {
+                    const affix = item. affixDetails[i];
+                    affixArray.push({
+                        position: affix.position,
+                        tier: affix.tier,
+                        name: affix.name,
+                        description: affix.description,
+                        color: affix.color,
+                    });
+                }
+                serialized.affixDetails = affixArray;
+            }
+            
+            serializedVault.push(serialized);
         });
         
-        (CustomGameEventManager. Send_ServerToPlayer as any)(player, 'update_vault_ui', {
-            items: serializedVault  // ⭐ 发送序列化后的数据
+        (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_vault_ui', {
+            items: serializedVault
         });
         
         print(`[SimpleDungeon] 打开仓库 UI，发送 ${vault.length} 件装备数据`);
@@ -93,23 +102,32 @@ CustomGameEventManager.RegisterListener("equip_item_from_vault", (userId, event:
         if (player) {
             // ⭐ 序列化仓库数据
             const vault = EquipmentVaultSystem.GetVault(playerId);
-            const serializedVault: any[] = [];
-            vault.forEach((item) => {
-                serializedVault.push({
-                    name: item.name,
-                    type: item.type,
-                    icon: item.icon,
-                    stats: item.stats,
-                    rarity: item.rarity,
-                    // ⭐ 序列化 affixDetails
-                    affixDetails: item.affixDetails ?  item.affixDetails. map(affix => ({
-                        position: affix.position,
-                        tier: affix.tier,
-                        name: affix.name,
-                        description: affix.description,
-                        color: affix.color,
-                    })) : undefined,
-                });
+           const serializedVault: any[] = [];
+vault.forEach((item) => {
+    const serialized: any = {
+        name: item.name,
+        type: item.type,
+        icon: item.icon,
+        stats: item.stats,
+        rarity: item. rarity,
+    };
+               // ⭐ 手动构建 affixDetails
+    if (item.affixDetails && item.affixDetails.length > 0) {
+        const affixArray: any[] = [];
+        for (let i = 0; i < item. affixDetails.length; i++) {
+            const affix = item.affixDetails[i];
+            affixArray.push({
+                position: affix.position,
+                tier: affix.tier,
+                name: affix. name,
+                description: affix.description,
+                color: affix.color,
+            });
+        }
+        serialized.affixDetails = affixArray;
+    }
+    
+    serializedVault.push(serialized);
             });
             
             // ⭐ 序列化装备数据

@@ -171,35 +171,64 @@ function ListenToDungeonSelection() {
 CustomGameEventManager.RegisterListener("request_vault_data", (userId, event: any) => {
     const playerId = event.PlayerID as PlayerID;
     
-    print(`[GameMode] 响应仓库数据请求：${playerId}`);
+    print(`[GameMode] ========== 响应仓库数据请求：${playerId} ==========`);
     
     const vault = EquipmentVaultSystem.GetVault(playerId);
     const serializedItems: any[] = [];
     
-    vault.forEach((item) => {
-        serializedItems.push({
+    vault.forEach((item, index) => {
+        // ⭐ 调试：打印每件装备的信息
+        print(`[GameMode] === 装备 ${index}: ${item.name} ===`);
+        print(`[GameMode]   rarity: ${item.rarity}`);
+        print(`[GameMode]   affixDetails 存在: ${item.affixDetails !== undefined}`);
+        
+        if (item.affixDetails) {
+            print(`[GameMode]   affixDetails 长度: ${item. affixDetails.length}`);
+            item.affixDetails.forEach((affix, idx) => {
+                print(`[GameMode]     [${idx}] ${affix.name} (T${affix.tier}): ${affix.description}`);
+            });
+        }
+        
+        const serialized: any = {
             name: item.name,
             type: item.type,
             icon: item.icon,
             stats: item.stats,
             rarity: item.rarity,
-            // ⭐ 序列化 affixDetails
-            affixDetails: item.affixDetails ? item.affixDetails.map(affix => ({
-                position: affix.position,
-                tier: affix.tier,
-                name: affix.name,
-                description: affix.description,
-                color: affix. color,
-            })) : undefined,
-        });
+        };
+        
+        // ⭐ 修复：手动构建 affixDetails 数组
+        if (item.affixDetails && item.affixDetails.length > 0) {
+            const affixArray: any[] = [];
+            for (let i = 0; i < item.affixDetails.length; i++) {
+                const affix = item.affixDetails[i];
+                affixArray. push({
+                    position: affix.position,
+                    tier: affix.tier,
+                    name: affix.name,
+                    description: affix. description,
+                    color: affix.color,
+                });
+            }
+            serialized. affixDetails = affixArray;
+            
+            print(`[GameMode]   序列化后 affixDetails: true`);
+            print(`[GameMode]   序列化后长度: ${affixArray.length}`);
+        } else {
+            print(`[GameMode]   序列化后 affixDetails: false`);
+        }
+        
+        serializedItems.push(serialized);
     });
+    
+    print(`[GameMode] ========== 准备发送 ${serializedItems.length} 件装备 ==========`);
     
     const player = PlayerResource.GetPlayer(playerId);
     if (player) {
-        (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_vault_ui', {
+        (CustomGameEventManager. Send_ServerToPlayer as any)(player, 'update_vault_ui', {
             items: serializedItems
         });
-        print(`[SimpleDungeon] 响应仓库数据请求：${vault.length} 件装备`);
+        print(`[GameMode] ✓ 已发送数据到客户端`);
     }
 });
 

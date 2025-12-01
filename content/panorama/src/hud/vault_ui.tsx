@@ -6,7 +6,7 @@ interface EquipmentStat {
     value: number;
 }
 
-// ⭐ 新增：词缀详情接口
+// 词缀详情接口
 interface AffixDetail {
     position: 'prefix' | 'suffix';
     tier: number;
@@ -22,7 +22,7 @@ interface ExternalRewardItem {
     icon: string;
     stats: EquipmentStat[];
     rarity?: number;
-    affixDetails?: AffixDetail[];  // ⭐ 新增
+    affixDetails?: AffixDetail[];
 }
 
 interface VaultUIProps {
@@ -38,19 +38,34 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
     const [compareEquipment, setCompareEquipment] = useState<ExternalRewardItem | null>(null);
     const [isEquipping, setIsEquipping] = useState(false);
     
-    // ⭐ 记录点击位置（格子的行和列）
     const [selectedPosition, setSelectedPosition] = useState<{ row: number; col: number } | null>(null);
-    // ⭐ 记录悬停位置
     const [hoveredPosition, setHoveredPosition] = useState<{ row: number; col: number } | null>(null);
 
     const hoverTimeoutRef = useRef<number | null>(null);
     
+    // ==================== 辅助函数：提取前后缀 ====================
+    const extractAffixes = (affixDetails: any) => {
+        const prefixes: any[] = [];
+        const suffixes: any[] = [];
+        
+        if (affixDetails) {
+            for (const key in affixDetails) {
+                const affix = affixDetails[key];
+                if (affix.position === 'prefix') {
+                    prefixes.push(affix);
+                } else if (affix.position === 'suffix') {
+                    suffixes.push(affix);
+                }
+            }
+        }
+        
+        return { prefixes, suffixes };
+    };
+    
     // ==================== 数据加载逻辑 ====================
     useEffect(() => {
-        if (! visible) return;
+        if (!  visible) return;
 
-        $. Msg('[VaultUI] 界面打开，请求仓库数据');
-        
         (GameEvents.SendCustomGameEventToServer as any)('request_vault_data', {
             PlayerID: Players.GetLocalPlayer()
         });
@@ -60,38 +75,19 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
         });
 
         const vaultListener = GameEvents.Subscribe('update_vault_ui', (data: any) => {
-            $. Msg('[VaultUI] 收到仓库数据:', data);
-            
             const items: ExternalRewardItem[] = [];
             if (data.items) {
                 if (Array.isArray(data.items)) {
-                    items.push(...data.items. map((item: any) => {
-                        // ⭐ 调试：检查 affixDetails
-                        if (item.affixDetails) {
-                            $. Msg(`[VaultUI] 装备 ${item.name} 有 affixDetails:`, item.affixDetails);
-                        } else {
-                            $.Msg(`[VaultUI] 装备 ${item.name} 没有 affixDetails`);
-                        }
-                        
-                        return {
-                            ... item,
-                            stats: Array.isArray(item.stats) ? item.stats : Object.values(item.stats || {})
-                        };
-                    }));
+                    items.push(...data.items. map((item: any) => ({
+                        ... item,
+                        stats: Array.isArray(item.stats) ? item.stats : Object.values(item.stats || {})
+                    })));
                 } else if (typeof data.items === 'object') {
                     for (const key in data.items) {
                         const item = data.items[key];
                         const statsArray = Array.isArray(item. stats) 
                             ? item.stats 
                             : Object.values(item.stats || {});
-                        
-                        // ⭐ 调试：检查 affixDetails
-                        if (item.affixDetails) {
-                            $. Msg(`[VaultUI] 装备 ${item.name} 有 affixDetails:`, item.affixDetails);
-                        } else {
-                            $. Msg(`[VaultUI] 装备 ${item.name} 没有 affixDetails`);
-                        }
-                        
                         items.push({
                             ...item,
                             stats: statsArray
@@ -99,14 +95,10 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
                     }
                 }
             }
-            
             setVaultItems(items);
-            $. Msg(`[VaultUI] 显示 ${items.length} 件装备`);
         });
 
         const equipmentListener = GameEvents.Subscribe('update_equipment_ui', (data: any) => {
-            $. Msg('[VaultUI] 收到装备数据:', data);
-            
             const processedEquipment: Record<string, ExternalRewardItem | null> = {};
             
             for (const slot in data.equipment) {
@@ -137,12 +129,7 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
 
     // ==================== 装备物品逻辑 ====================
     const onEquipItem = (index: number) => {
-        if (isEquipping) {
-            $. Msg('[VaultUI] ⚠️ 正在装备中，请稍候...');
-            return;
-        }
-        
-        $. Msg(`[VaultUI] 装备索引 ${index} 的装备`);
+        if (isEquipping) return;
         
         setIsEquipping(true);
         
@@ -160,7 +147,6 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
         
         setTimeout(() => {
             setIsEquipping(false);
-            $.Msg('[VaultUI] 解除装备锁定');
         }, 1500);
     };
 
@@ -182,10 +168,6 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
         setHoveredPosition({ row, col });
         const equipped = findEquippedItemByType(item.type);
         setCompareEquipment(equipped);
-        
-        // ⭐ 调试：悬停时打印装备信息
-        $. Msg('[VaultUI] 悬停装备:', item);
-        $. Msg('[VaultUI] affixDetails:', item.affixDetails);
     };
 
     const handleMouseOut = () => {
@@ -205,8 +187,7 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
 
     // ==================== 获取物品品质颜色 ====================
     const getQualityColor = (item: ExternalRewardItem): string => {
-        // ⭐ 优先使用稀有度颜色
-        if (item. rarity !== undefined) {
+        if (item.rarity !== undefined) {
             const rarityColors: Record<number, string> = {
                 0: '#c8c8c8',  // 普通 - 灰白色
                 1: '#8888ff',  // 魔法 - 蓝色
@@ -216,8 +197,7 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
             return rarityColors[item.rarity] || '#9d9d9d';
         }
         
-        // 原有逻辑（向下兼容）
-        const totalValue = item.stats.reduce((sum, stat) => sum + stat.value, 0);
+        const totalValue = item.stats.reduce((sum, stat) => sum + stat. value, 0);
         
         if (totalValue >= 50) return '#ff8000';
         if (totalValue >= 35) return '#a335ee';
@@ -233,31 +213,25 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
     const TOTAL_SLOTS = COLUMNS * ROWS;
     const emptySlots = TOTAL_SLOTS - vaultItems.length;
     
-    // ⭐ 格子尺寸
     const SLOT_SIZE = 80;
     const SLOT_MARGIN = 2;
     const GRID_PADDING = 15;
 
-    // ⭐ 计算弹窗位置
     const getPopupPosition = (position: { row: number; col: number } | null, popupWidth: number) => {
         if (!position) return { marginLeft: '0px', marginTop: '0px' };
         
         const { row, col } = position;
         
-        // 计算格子的位置
         const slotX = GRID_PADDING + col * (SLOT_SIZE + SLOT_MARGIN * 2);
         const slotY = 60 + GRID_PADDING + row * (SLOT_SIZE + SLOT_MARGIN * 2);
         
-        // 面板显示在格子右上方
         let popupX = slotX + SLOT_SIZE + 10;
         let popupY = slotY - 30;
         
-        // 确保不超出仓库右边界
         if (popupX + popupWidth > 740) {
             popupX = slotX - popupWidth - 10;
         }
         
-        // 确保不超出上边界
         if (popupY < 10) {
             popupY = 10;
         }
@@ -341,7 +315,6 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
                     const hoverBorder = `4px solid ${qualityColor}`;
                     const isHovered = hoveredItem === index;
                     
-                    // ⭐ 计算当前格子的行和列
                     const row = Math.floor(index / COLUMNS);
                     const col = index % COLUMNS;
                     
@@ -399,6 +372,7 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
             {/* ⭐ 装备悬停对比面板 */}
             {hoveredItem !== null && hoveredItemData && hoveredPosition && ! selectedItem && (() => {
                 const hoverPos = getPopupPosition(hoveredPosition, 350);
+                const { prefixes, suffixes } = extractAffixes(hoveredItemData. affixDetails);
                 
                 return (
                     <Panel hittest={false}
@@ -467,50 +441,50 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
                                         />
                                         <Label 
                                             text={hoveredItemData.type}
-                                            style={{ fontSize: '12px', color: '#ffd700', marginBottom: '5px' }}
+                                            style={{ fontSize: '12px', color: '#ffd700', marginBottom: '8px' }}
                                         />
                                         
-                                        {/* ⭐ 词缀详情显示 */}
-                                        {hoveredItemData.affixDetails && hoveredItemData.affixDetails. length > 0 ?  (
+                                        {/* ⭐ 前缀显示 */}
+                                        {prefixes.length > 0 && (
                                             <>
                                                 <Label 
-                                                    text="━━━ 词缀 ━━━"
-                                                    style={{ fontSize: '11px', color: '#888888', marginTop: '3px', marginBottom: '3px' }}
+                                                    text={`━━ 前缀 (${prefixes.length}) ━━`}
+                                                    style={{ fontSize: '11px', color: '#8888ff', marginBottom: '3px', fontWeight: 'bold' }}
                                                 />
-                                                {hoveredItemData.affixDetails.map((affix, idx) => (
+                                                {prefixes.map((affix: any, idx: number) => (
                                                     <Label 
-                                                        key={`affix-${idx}`}
+                                                        key={`prefix-${idx}`}
                                                         text={`[T${affix.tier}] ${affix.name} ${affix.description}`}
                                                         style={{ 
                                                             fontSize: '11px', 
-                                                            color: affix.color || '#ffffff',
+                                                            color: '#8888ff',
                                                             marginBottom: '2px',
                                                         }}
                                                     />
                                                 ))}
-                                                <Label 
-                                                    text="━━━ 属性 ━━━"
-                                                    style={{ fontSize: '11px', color: '#888888', marginTop: '3px', marginBottom: '3px' }}
-                                                />
                                             </>
-                                        ) : (
-                                            <Label 
-                                                text="[调试] 无词缀数据"
-                                                style={{ fontSize: '10px', color: '#ff0000', marginBottom: '3px' }}
-                                            />
                                         )}
                                         
-                                        {hoveredItemData.stats.map((stat, idx) => (
-                                            <Label 
-                                                key={idx}
-                                                text={`+${stat. value} ${stat.attribute}`}
-                                                style={{ 
-                                                    fontSize: '14px', 
-                                                    color: '#00ff00', 
-                                                    fontWeight: 'bold',
-                                                }}
-                                            />
-                                        ))}
+                                        {/* ⭐ 后缀显示 */}
+                                        {suffixes. length > 0 && (
+                                            <>
+                                                <Label 
+                                                    text={`━━ 后缀 (${suffixes. length}) ━━`}
+                                                    style={{ fontSize: '11px', color: '#ffff77', marginTop: '5px', marginBottom: '3px', fontWeight: 'bold' }}
+                                                />
+                                                {suffixes.map((affix: any, idx: number) => (
+                                                    <Label 
+                                                        key={`suffix-${idx}`}
+                                                        text={`[T${affix.tier}] ${affix.name} ${affix.description}`}
+                                                        style={{ 
+                                                            fontSize: '11px', 
+                                                            color: '#ffff77',
+                                                            marginBottom: '2px',
+                                                        }}
+                                                    />
+                                                ))}
+                                            </>
+                                        )}
                                     </Panel>
                                 </Panel>
                             </Panel>
@@ -524,14 +498,15 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
                             }} />
 
                             {/* 当前已装备 */}
-                            {compareEquipment ?  (
-                                <>
+                            {compareEquipment ?  (() => {
+                                const { prefixes: currPrefixes, suffixes: currSuffixes } = extractAffixes(compareEquipment. affixDetails);
+                                
+                                return (
                                     <Panel style={{
                                         width: '100%',
                                         backgroundColor: '#0a0a0a',
                                         border: `2px solid ${getQualityColor(compareEquipment)}`,
                                         padding: '10px',
-                                        marginBottom: '10px',
                                         flowChildren: 'down',
                                     }}>
                                         <Label 
@@ -558,126 +533,55 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
                                                 />
                                                 <Label 
                                                     text={compareEquipment. type}
-                                                    style={{ fontSize: '12px', color: '#ffd700', marginBottom: '5px' }}
+                                                    style={{ fontSize: '12px', color: '#ffd700', marginBottom: '8px' }}
                                                 />
                                                 
-                                                {/* ⭐ 当前装备词缀显示 */}
-                                                {compareEquipment.affixDetails && compareEquipment.affixDetails.length > 0 ? (
+                                                {/* ⭐ 当前装备前缀 */}
+                                                {currPrefixes.length > 0 && (
                                                     <>
                                                         <Label 
-                                                            text="━━━ 词缀 ━━━"
-                                                            style={{ fontSize: '11px', color: '#888888', marginTop: '3px', marginBottom: '3px' }}
+                                                            text={`━━ 前缀 (${currPrefixes.length}) ━━`}
+                                                            style={{ fontSize: '11px', color: '#8888ff', marginBottom: '3px', fontWeight: 'bold' }}
                                                         />
-                                                        {compareEquipment. affixDetails.map((affix, idx) => (
+                                                        {currPrefixes.map((affix: any, idx: number) => (
                                                             <Label 
-                                                                key={`curr-affix-${idx}`}
+                                                                key={`curr-prefix-${idx}`}
                                                                 text={`[T${affix.tier}] ${affix.name} ${affix.description}`}
                                                                 style={{ 
                                                                     fontSize: '11px', 
-                                                                    color: affix.color || '#ffffff',
+                                                                    color: '#8888ff',
                                                                     marginBottom: '2px',
                                                                 }}
                                                             />
                                                         ))}
-                                                        <Label 
-                                                            text="━━━ 属性 ━━━"
-                                                            style={{ fontSize: '11px', color: '#888888', marginTop: '3px', marginBottom: '3px' }}
-                                                        />
                                                     </>
-                                                ) : null}
+                                                )}
                                                 
-                                                {compareEquipment.stats.map((stat, idx) => (
-                                                    <Label 
-                                                        key={idx}
-                                                        text={`+${stat.value} ${stat.attribute}`}
-                                                        style={{ 
-                                                            fontSize: '14px', 
-                                                            color: '#00ff00', 
-                                                            fontWeight: 'bold',
-                                                        }}
-                                                    />
-                                                ))}
+                                                {/* ⭐ 当前装备后缀 */}
+                                                {currSuffixes.length > 0 && (
+                                                    <>
+                                                        <Label 
+                                                            text={`━━ 后缀 (${currSuffixes.length}) ━━`}
+                                                            style={{ fontSize: '11px', color: '#ffff77', marginTop: '5px', marginBottom: '3px', fontWeight: 'bold' }}
+                                                        />
+                                                        {currSuffixes.map((affix: any, idx: number) => (
+                                                            <Label 
+                                                                key={`curr-suffix-${idx}`}
+                                                                text={`[T${affix. tier}] ${affix.name} ${affix.description}`}
+                                                                style={{ 
+                                                                    fontSize: '11px', 
+                                                                    color: '#ffff77',
+                                                                    marginBottom: '2px',
+                                                                }}
+                                                            />
+                                                        ))}
+                                                    </>
+                                                )}
                                             </Panel>
                                         </Panel>
                                     </Panel>
-
-                                    {/* 属性变化 */}
-                                    <Panel style={{
-                                        width: '100%',
-                                        backgroundColor: '#2a2a2a',
-                                        padding: '10px',
-                                        flowChildren: 'down',
-                                    }}>
-                                        <Label 
-                                            text="📈 属性变化"
-                                            style={{
-                                                fontSize: '14px',
-                                                color: '#ffd700',
-                                                marginBottom: '8px',
-                                                fontWeight: 'bold',
-                                            }}
-                                        />
-                                        
-                                        {(() => {
-                                            const allAttributes = new Set<string>();
-                                            hoveredItemData.stats.forEach(stat => allAttributes.add(stat.attribute));
-                                            compareEquipment.stats.forEach(stat => allAttributes.add(stat.attribute));
-                                            
-                                            const attributeDiffs: Array<{ attr: string; oldVal: number; newVal: number; diff: number }> = [];
-                                            
-                                            allAttributes.forEach(attr => {
-                                                const oldStat = compareEquipment.stats.find(s => s.attribute === attr);
-                                                const newStat = hoveredItemData.stats. find(s => s.attribute === attr);
-                                                
-                                                const oldVal = oldStat ? oldStat.value : 0;
-                                                const newVal = newStat ? newStat.value : 0;
-                                                const diff = newVal - oldVal;
-                                                
-                                                if (diff !== 0) {
-                                                    attributeDiffs.push({ attr, oldVal, newVal, diff });
-                                                }
-                                            });
-                                            
-                                            return attributeDiffs.map((item, idx) => {
-                                                const isUpgrade = item.diff > 0;
-                                                const diffColor = isUpgrade ? '#00ff00' : '#ff0000';
-                                                const diffSymbol = isUpgrade ? '↑' : '↓';
-                                                
-                                                return (
-                                                    <Panel key={idx} style={{ 
-                                                        width: '100%', 
-                                                        marginBottom: '5px',
-                                                        flowChildren: 'right'
-                                                    }}>
-                                                        <Label 
-                                                            text={`${item.attr}: `}
-                                                            style={{
-                                                                fontSize: '14px',
-                                                                color: '#cccccc',
-                                                            }}
-                                                        />
-                                                        <Label 
-                                                            text={`${diffSymbol} ${Math.abs(item.diff)}`}
-                                                            style={{
-                                                                fontSize: '14px',
-                                                                color: diffColor,
-                                                                fontWeight: 'bold',
-                                                            }}
-                                                        />
-                                                        <Label 
-                                                            text={` (${item.oldVal} → ${item.newVal})`}
-                                                            style={{
-                                                                fontSize: '12px',
-                                                                color: '#888888',
-                                                            }}
-                                                        />
-                                                    </Panel>
-                                                );
-                                            });
-                                        })()}
-                                    </Panel>
-                                </>
-                            ) : (
+                                );
+                            })() : (
                                 <Panel style={{
                                     width: '100%',
                                     backgroundColor: '#2a2a2a',
@@ -692,28 +596,6 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
                                             textAlign: 'center',
                                         }}
                                     />
-                                    <Label 
-                                        text="装备后将获得："
-                                        style={{
-                                            fontSize: '12px',
-                                            color: '#ffd700',
-                                            textAlign: 'center',
-                                            marginTop: '8px',
-                                            marginBottom: '5px',
-                                        }}
-                                    />
-                                    {hoveredItemData.stats.map((stat, idx) => (
-                                        <Label 
-                                            key={idx}
-                                            text={`+${stat.value} ${stat. attribute}`}
-                                            style={{
-                                                fontSize: '14px',
-                                                color: '#00ff00',
-                                                textAlign: 'center',
-                                                fontWeight: 'bold',
-                                            }}
-                                        />
-                                    ))}
                                 </Panel>
                             )}
                         </Panel>
@@ -726,6 +608,7 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
                 const item = vaultItems[selectedItem];
                 const qualityColor = getQualityColor(item);
                 const popupPos = getPopupPosition(selectedPosition, 320);
+                const { prefixes, suffixes } = extractAffixes(item.affixDetails);
                 
                 return (
                     <Panel 
@@ -792,46 +675,51 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
                                         style={{
                                             fontSize: '12px',
                                             color: '#ffd700',
-                                            marginBottom: '5px',
+                                            marginBottom: '8px',
                                         }}
                                     />
                                     
-                                    {/* ⭐ 确认面板词缀显示 */}
-                                    {item.affixDetails && item.affixDetails.length > 0 ? (
+                                    {/* ⭐ 确认面板前缀 */}
+                                    {prefixes.length > 0 && (
                                         <>
                                             <Label 
-                                                text="━━━ 词缀 ━━━"
-                                                style={{ fontSize: '11px', color: '#888888', marginTop: '3px', marginBottom: '3px' }}
+                                                text={`━━ 前缀 (${prefixes.length}) ━━`}
+                                                style={{ fontSize: '11px', color: '#8888ff', marginBottom: '3px', fontWeight: 'bold' }}
                                             />
-                                            {item.affixDetails.map((affix, idx) => (
+                                            {prefixes.map((affix: any, idx: number) => (
                                                 <Label 
-                                                    key={`confirm-affix-${idx}`}
+                                                    key={`confirm-prefix-${idx}`}
                                                     text={`[T${affix.tier}] ${affix.name} ${affix.description}`}
                                                     style={{ 
                                                         fontSize: '11px', 
-                                                        color: affix.color || '#ffffff',
+                                                        color: '#8888ff',
                                                         marginBottom: '2px',
                                                     }}
                                                 />
                                             ))}
-                                            <Label 
-                                                text="━━━ 属性 ━━━"
-                                                style={{ fontSize: '11px', color: '#888888', marginTop: '3px', marginBottom: '3px' }}
-                                            />
                                         </>
-                                    ) : null}
+                                    )}
                                     
-                                    {item.stats.map((stat, idx) => (
-                                        <Label 
-                                            key={idx}
-                                            text={`+${stat. value} ${stat.attribute}`}
-                                            style={{
-                                                fontSize: '14px',
-                                                color: '#00ff00',
-                                                fontWeight: 'bold',
-                                            }}
-                                        />
-                                    ))}
+                                    {/* ⭐ 确认面板后缀 */}
+                                    {suffixes.length > 0 && (
+                                        <>
+                                            <Label 
+                                                text={`━━ 后缀 (${suffixes.length}) ━━`}
+                                                style={{ fontSize: '11px', color: '#ffff77', marginTop: '5px', marginBottom: '3px', fontWeight: 'bold' }}
+                                            />
+                                            {suffixes.map((affix: any, idx: number) => (
+                                                <Label 
+                                                    key={`confirm-suffix-${idx}`}
+                                                    text={`[T${affix.tier}] ${affix.name} ${affix.description}`}
+                                                    style={{ 
+                                                        fontSize: '11px', 
+                                                        color: '#ffff77',
+                                                        marginBottom: '2px',
+                                                    }}
+                                                />
+                                            ))}
+                                        </>
+                                    )}
                                 </Panel>
                             </Panel>
                             
