@@ -3,7 +3,7 @@ declare const _G: any;
 import { ExternalRewardItem, ExternalItemType, EquipmentAttribute } from "../dungeon/external_reward_pool";
 
 // ⭐ 初始化全局装备属性表
-_G.EquipmentStats = _G.EquipmentStats || {};
+_G. EquipmentStats = _G.EquipmentStats || {};
 
 // 装备槽位枚举
 export enum EquipmentSlot {
@@ -26,7 +26,7 @@ const ITEM_TYPE_TO_SLOT: { [key: string]: EquipmentSlot } = {
     "武器": EquipmentSlot.WEAPON,
     "护甲": EquipmentSlot.ARMOR,
     "腰带": EquipmentSlot.BELT,
-    "鞋子": EquipmentSlot.BOOTS,
+    "鞋子": EquipmentSlot. BOOTS,
 };
 
 export class EquipmentVaultSystem {
@@ -54,7 +54,7 @@ export class EquipmentVaultSystem {
         }
         
         // 初始化仓库
-        if (!this.playerVaults[playerId]) {
+        if (!this. playerVaults[playerId]) {
             this.playerVaults[playerId] = [];
         }
         
@@ -90,7 +90,7 @@ export class EquipmentVaultSystem {
                 return;
             }
             
-            print(`[EquipmentVaultSystem] 尝试添加 modifier_equipment_system...`);
+            print(`[EquipmentVaultSystem] 尝试添加 modifier_equipment_system... `);
             
             // ⭐ 初始化全局属性表
             _G.EquipmentStats[playerId] = {
@@ -106,7 +106,7 @@ export class EquipmentVaultSystem {
                 magic_resistance: 0,
             };
             
-           const modifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
+            const modifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
             
             if (modifier && !modifier.IsNull()) {
                 this.playerModifiers[playerId] = modifier;
@@ -126,16 +126,16 @@ export class EquipmentVaultSystem {
             this.playerVaults[playerId] = [];
         }
         
-        this.playerVaults[playerId].push(item);
+        this.playerVaults[playerId]. push(item);
         this.SaveToPersistentStorage(playerId);
     }
 
     // 获取玩家仓库
     static GetVault(playerId: PlayerID): ExternalRewardItem[] {
         if (!this.playerVaults[playerId]) {
-            this.playerVaults[playerId] = [];
+            this. playerVaults[playerId] = [];
         }
-        return this.playerVaults[playerId];
+        return this. playerVaults[playerId];
     }
 
     // 获取玩家装备
@@ -155,11 +155,54 @@ export class EquipmentVaultSystem {
         return this.playerEquipment[playerId];
     }
 
+// ⭐ 深拷贝装备项（避免引用共享）
+private static DeepCloneItem(item: ExternalRewardItem): ExternalRewardItem {
+    const cloned: ExternalRewardItem = {
+        name: item.name,
+        type: item.type,
+        icon: item.icon,
+        rarity: item.rarity,
+        stats: [],
+        affixDetails: undefined,
+    };
+    
+    // 深拷贝 stats
+    for (let i = 0; i < item.stats.length; i++) {
+        cloned.stats.push({
+            attribute: item.stats[i]. attribute,
+            value: item. stats[i].value
+        });
+    }
+    
+    // 深拷贝 affixDetails
+    if (item. affixDetails && item.affixDetails.length > 0) {
+        cloned.affixDetails = [];
+        
+        // ⭐ 使用标准 for 循环遍历数组
+        for (let i = 0; i < item.affixDetails.length; i++) {
+            const affix = item.affixDetails[i];
+            if (affix && affix.name) {
+                cloned.affixDetails.push({
+                    position: affix.position,
+                    tier: affix.tier,
+                    name: affix.name,
+                    description: affix.description,
+                    color: affix.color,
+                });
+            }
+        }
+        
+        print(`[EquipmentVaultSystem] 深拷贝装备 ${item.name}，词缀: ${cloned.affixDetails. length} 个`);
+    }
+    
+    return cloned;
+}
+
     // 从仓库装备物品
     static EquipItem(playerId: PlayerID, index: number): boolean {
         const vault = this.GetVault(playerId);
         
-        if (index < 0 || index >= vault.length) {
+        if (index < 0 || index >= vault. length) {
             print(`[EquipmentVaultSystem] ❌ 无效的索引：${index}`);
             return false;
         }
@@ -167,12 +210,12 @@ export class EquipmentVaultSystem {
         const item = vault[index];
         const slot = ITEM_TYPE_TO_SLOT[item.type];
         
-        if (! slot) {
+        if (!slot) {
             print(`[EquipmentVaultSystem] ❌ 未知的装备类型：${item.type}`);
             return false;
         }
         
-        vault.splice(index, 1);
+        vault. splice(index, 1);
         print(`[EquipmentVaultSystem] 从仓库移除：${item.name}，剩余 ${vault.length} 件`);
         
         const equipment = this.GetEquipment(playerId);
@@ -182,7 +225,8 @@ export class EquipmentVaultSystem {
             vault.push(oldItem);
         }
         
-        equipment[slot] = item;
+        // ⭐ 深拷贝 item，避免共享引用
+        equipment[slot] = this.DeepCloneItem(item);
         this.RefreshEquipmentStats(playerId);
         this.SaveToPersistentStorage(playerId);
         
@@ -209,64 +253,64 @@ export class EquipmentVaultSystem {
         return true;
     }
 
-// ⭐ 获取或创建 Modifier
-private static GetOrCreateModifier(playerId: PlayerID): CDOTA_Buff | null {
-    let modifier = this.playerModifiers[playerId];
-    
-    // 检查 modifier 是否有效
-    if (modifier && !modifier.IsNull()) {
-        return modifier;
-    }
-    
-    print("[EquipmentVaultSystem] Modifier 不存在或已失效，尝试重新获取/创建...");
-    
-    const hero = PlayerResource.GetSelectedHeroEntity(playerId) as CDOTA_BaseNPC_Hero;
-    if (!hero || hero.IsNull()) {
-        print("[EquipmentVaultSystem] 找不到英雄，无法获取/创建 Modifier");
+    // ⭐ 获取或创建 Modifier
+    private static GetOrCreateModifier(playerId: PlayerID): CDOTA_Buff | null {
+        let modifier = this.playerModifiers[playerId];
+        
+        // 检查 modifier 是否有效
+        if (modifier && !modifier.IsNull()) {
+            return modifier;
+        }
+        
+        print("[EquipmentVaultSystem] Modifier 不存在或已失效，尝试重新获取/创建.. .");
+        
+        const hero = PlayerResource.GetSelectedHeroEntity(playerId) as CDOTA_BaseNPC_Hero;
+        if (!hero || hero.IsNull()) {
+            print("[EquipmentVaultSystem] 找不到英雄，无法获取/创建 Modifier");
+            return null;
+        }
+        
+        // 先尝试查找现有的 modifier
+        const existingModifier = hero.FindModifierByName("modifier_equipment_system");
+        if (existingModifier && !existingModifier.IsNull()) {
+            this.playerModifiers[playerId] = existingModifier;
+            print("[EquipmentVaultSystem] 找到现有 Modifier");
+            return existingModifier;
+        }
+        
+        // 记录基础护甲
+        if (this.playerBaseArmor[playerId] === undefined) {
+            this.playerBaseArmor[playerId] = hero. GetPhysicalArmorBaseValue();
+            print("[EquipmentVaultSystem] 记录基础护甲: " + this.playerBaseArmor[playerId]);
+        }
+        
+        // 初始化全局属性表
+        if (!_G.EquipmentStats[playerId]) {
+            _G.EquipmentStats[playerId] = {
+                strength: 0,
+                agility: 0,
+                intelligence: 0,
+                armor: 0,
+                health: 0,
+                mana: 0,
+                attack_damage: 0,
+                attack_speed: 0,
+                move_speed: 0,
+                magic_resistance: 0,
+            };
+        }
+        
+        // 创建新的 modifier
+        const newMod = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
+        if (newMod && !newMod.IsNull()) {
+            this.playerModifiers[playerId] = newMod;
+            print("[EquipmentVaultSystem] 创建新 Modifier 成功");
+            return newMod;
+        }
+        
+        print("[EquipmentVaultSystem] 创建 Modifier 失败");
         return null;
     }
-    
-    // 先尝试查找现有的 modifier
-    const existingModifier = hero.FindModifierByName("modifier_equipment_system");
-    if (existingModifier && !existingModifier.IsNull()) {
-        this.playerModifiers[playerId] = existingModifier;
-        print("[EquipmentVaultSystem] 找到现有 Modifier");
-        return existingModifier;
-    }
-    
-    // 记录基础护甲
-    if (this.playerBaseArmor[playerId] === undefined) {
-        this.playerBaseArmor[playerId] = hero.GetPhysicalArmorBaseValue();
-        print("[EquipmentVaultSystem] 记录基础护甲: " + this.playerBaseArmor[playerId]);
-    }
-    
-    // 初始化全局属性表
-    if (!_G.EquipmentStats[playerId]) {
-        _G.EquipmentStats[playerId] = {
-            strength: 0,
-            agility: 0,
-            intelligence: 0,
-            armor: 0,
-            health: 0,
-            mana: 0,
-            attack_damage: 0,
-            attack_speed: 0,
-            move_speed: 0,
-            magic_resistance: 0,
-        };
-    }
-    
-    // 创建新的 modifier - 传空对象，modifier 自己获取 playerId
-    const newMod = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
-    if (newMod && !newMod.IsNull()) {
-        this.playerModifiers[playerId] = newMod;
-        print("[EquipmentVaultSystem] 创建新 Modifier 成功");
-        return newMod;
-    }
-    
-    print("[EquipmentVaultSystem] 创建 Modifier 失败");
-    return null;
-}
 
     // ⭐ 刷新装备属性
     private static RefreshEquipmentStats(playerId: PlayerID): void {
@@ -329,9 +373,9 @@ private static GetOrCreateModifier(playerId: PlayerID): CDOTA_Buff | null {
         _G.EquipmentStats[playerId] = totalStats;
         
         // ⭐ 创建新 modifier
-      const newModifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
+        const newModifier = hero.AddNewModifier(hero, undefined, "modifier_equipment_system", {});
 
-        if (newModifier && !newModifier.IsNull()) {
+        if (newModifier && ! newModifier.IsNull()) {
             this.playerModifiers[playerId] = newModifier;
             
             print(`[EquipmentVaultSystem] ========== 装备属性总和 ==========`);
@@ -340,9 +384,9 @@ private static GetOrCreateModifier(playerId: PlayerID): CDOTA_Buff | null {
             print(`[EquipmentVaultSystem] 智力: +${totalStats.intelligence}`);
             print(`[EquipmentVaultSystem] 护甲: +${totalStats.armor}`);
             print(`[EquipmentVaultSystem] 生命: +${totalStats.health}`);
-            print(`[EquipmentVaultSystem] 魔法: +${totalStats.mana}`);
+            print(`[EquipmentVaultSystem] 魔法: +${totalStats. mana}`);
             print(`[EquipmentVaultSystem] 攻击力: +${totalStats.attack_damage}`);
-            print(`[EquipmentVaultSystem] 攻击速度: +${totalStats.attack_speed}`);
+            print(`[EquipmentVaultSystem] 攻击速度: +${totalStats. attack_speed}`);
             print(`[EquipmentVaultSystem] 移动速度: +${totalStats.move_speed}`);
             print(`[EquipmentVaultSystem] 魔抗: +${totalStats.magic_resistance}`);
             print(`[EquipmentVaultSystem] =====================================`);
@@ -368,103 +412,112 @@ private static GetOrCreateModifier(playerId: PlayerID): CDOTA_Buff | null {
         return mapping[attribute] || null;
     }
 
-  private static SaveToPersistentStorage(playerId: PlayerID): void {
-    const items = this.playerVaults[playerId] || [];
-    const equipment = this.playerEquipment[playerId] || {};
-    
-    const serializedItems: any = {};
-    items.forEach((item, index) => {
-        const serialized: any = {
-            name: item.name,
-            type: item.type,
-            icon: item.icon,
-            stats: [],
-            rarity: item.rarity,
-        };
+    // ⭐ 持久化保存（使用对象而不是数组）
+    private static SaveToPersistentStorage(playerId: PlayerID): void {
+        const items = this.playerVaults[playerId] || [];
+        const equipment = this.playerEquipment[playerId] || {};
         
-        // ⭐ 安全复制 stats
-        for (let i = 0; i < item.stats.length; i++) {
-            serialized.stats.push({
-                attribute: item.stats[i].attribute,
-                value: item.stats[i].value
-            });
-        }
+        const serializedItems: any = {};
         
-        // ⭐ 安全复制 affixDetails
-        if (item.affixDetails) {
-            serialized.affixDetails = [];
-            const entries = Object.entries(item.affixDetails as any);
-            for (let i = 0; i < entries.length; i++) {
-                const [_, affix] = entries[i];
-                if (affix && typeof affix === 'object') {
-                    serialized.affixDetails.push({
-                        position: (affix as any).position,
-                        tier: (affix as any).tier,
-                        name: (affix as any).name,
-                        description: (affix as any).description,
-                        color: (affix as any).color,
-                    });
-                }
-            }
-        }
-        
-        serializedItems[index.toString()] = serialized;
-    });
-    
-    const serializedEquipment: any = {};
-    for (const slot in equipment) {
-        const item = equipment[slot];
-        if (item) {
+        for (let idx = 0; idx < items. length; idx++) {
+            const item = items[idx];
             const serialized: any = {
                 name: item.name,
                 type: item.type,
                 icon: item.icon,
-                stats: [],
                 rarity: item.rarity,
             };
             
-            // ⭐ 安全复制 stats
-            for (let i = 0; i < item.stats.length; i++) {
-                serialized.stats.push({
+            // ⭐ 使用对象而不是数组存储 stats
+            const statsObj: any = {};
+            for (let i = 0; i < item.stats. length; i++) {
+                statsObj[i. toString()] = {
                     attribute: item.stats[i].attribute,
-                    value: item.stats[i].value
-                });
+                    value: item.stats[i]. value
+                };
             }
+            serialized.stats = statsObj;
             
-            // ⭐ 安全复制 affixDetails
+            // ⭐ 使用对象而不是数组存储 affixDetails
             if (item.affixDetails) {
-                serialized.affixDetails = [];
+                const affixObj: any = {};
                 const entries = Object.entries(item.affixDetails as any);
+                
                 for (let i = 0; i < entries.length; i++) {
                     const [_, affix] = entries[i];
                     if (affix && typeof affix === 'object') {
-                        serialized.affixDetails.push({
+                        affixObj[i.toString()] = {
                             position: (affix as any).position,
                             tier: (affix as any).tier,
                             name: (affix as any).name,
                             description: (affix as any).description,
                             color: (affix as any).color,
-                        });
+                        };
                     }
                 }
+                serialized.affixDetails = affixObj;
             }
             
-            serializedEquipment[slot] = serialized;
-        } else {
-            serializedEquipment[slot] = null;
+            serializedItems[idx. toString()] = serialized;
         }
+        
+        const serializedEquipment: any = {};
+        for (const slot in equipment) {
+            const item = equipment[slot];
+            if (item) {
+                const serialized: any = {
+                    name: item.name,
+                    type: item.type,
+                    icon: item.icon,
+                    rarity: item. rarity,
+                };
+                
+                // ⭐ 使用对象存储 stats
+                const statsObj: any = {};
+                for (let i = 0; i < item.stats.length; i++) {
+                    statsObj[i.toString()] = {
+                        attribute: item.stats[i].attribute,
+                        value: item.stats[i].value
+                    };
+                }
+                serialized.stats = statsObj;
+                
+                // ⭐ 使用对象存储 affixDetails
+                if (item.affixDetails) {
+                    const affixObj: any = {};
+                    const entries = Object.entries(item.affixDetails as any);
+                    
+                    for (let i = 0; i < entries.length; i++) {
+                        const [_, affix] = entries[i];
+                        if (affix && typeof affix === 'object') {
+                            affixObj[i.toString()] = {
+                                position: (affix as any).position,
+                                tier: (affix as any).tier,
+                                name: (affix as any).name,
+                                description: (affix as any).description,
+                                color: (affix as any). color,
+                            };
+                        }
+                    }
+                    serialized.affixDetails = affixObj;
+                }
+                
+                serializedEquipment[slot] = serialized;
+            } else {
+                serializedEquipment[slot] = null;
+            }
+        }
+        
+        print(`[EquipmentVaultSystem] 💾 保存到存储: ${items.length} 件仓库装备`);
+        
+        CustomNetTables.SetTableValue("player_vaults", playerId. toString(), {
+            items: serializedItems,
+            equipment: serializedEquipment,
+            timestamp: Time()
+        } as any);
     }
-    
-    print(`[EquipmentVaultSystem] 💾 保存到存储: ${items.length} 件仓库装备`);
-    
-    CustomNetTables.SetTableValue("player_vaults", playerId.toString(), {
-        items: serializedItems,
-        equipment: serializedEquipment,
-        timestamp: Time()
-    } as any);
-}
 
-    // ⭐ 持久化加载（添加 affixDetails 和 rarity）
+    // ⭐ 持久化加载（修复版）
     private static LoadFromPersistentStorage(playerId: PlayerID): void {
         const data = CustomNetTables.GetTableValue("player_vaults", playerId.toString()) as any;
         
@@ -473,18 +526,48 @@ private static GetOrCreateModifier(playerId: PlayerID): CDOTA_Buff | null {
                 const items: ExternalRewardItem[] = [];
                 for (const key in data.items) {
                     const item = data.items[key];
-                    let statsArray = Array.isArray(item.stats) ? item.stats : Object.values(item.stats);
                     
-                    // ⭐ 加载词缀详情
-                    let affixDetailsArray = undefined;
+                    // ⭐ 安全转换 stats
+                    let statsArray: any[] = [];
+                    if (item.stats) {
+                        if (Array.isArray(item. stats)) {
+                            statsArray = item.stats;
+                        } else {
+                            // 从对象转换为数组
+                            for (const k in item.stats) {
+                                const stat = item.stats[k];
+                                if (stat && stat.attribute) {
+                                    statsArray. push(stat);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // ⭐ 安全转换 affixDetails
+                    let affixDetailsArray: any[] | undefined = undefined;
                     if (item.affixDetails) {
-                        affixDetailsArray = Array.isArray(item.affixDetails) 
-                            ? item.affixDetails 
-                            : Object.values(item.affixDetails);
+                        const tempArr: any[] = [];
+                        
+                        if (Array.isArray(item. affixDetails)) {
+                            tempArr.push(...item.affixDetails);
+                        } else if (typeof item.affixDetails === 'object') {
+                            // 从对象转换为数组
+                            for (const k in item.affixDetails) {
+                                const affix = item.affixDetails[k];
+                                if (affix && affix.name) {  // 检查是否是有效词缀
+                                    tempArr. push(affix);
+                                }
+                            }
+                        }
+                        
+                        if (tempArr.length > 0) {
+                            affixDetailsArray = tempArr;
+                            print(`[EquipmentVaultSystem] 加载仓库装备 ${item.name}，词缀数量: ${tempArr.length}`);
+                        }
                     }
                     
                     items.push({ 
-                        name: item.name, 
+                        name: item. name, 
                         type: item.type, 
                         icon: item.icon, 
                         stats: statsArray,
@@ -496,19 +579,46 @@ private static GetOrCreateModifier(playerId: PlayerID): CDOTA_Buff | null {
                 print(`[EquipmentVaultSystem] 从存储加载了 ${items.length} 件仓库装备`);
             }
             
-            if (data.equipment) {
+            if (data. equipment) {
                 const equipment: { [slot: string]: ExternalRewardItem | null } = {};
                 for (const slot in data.equipment) {
                     const item = data.equipment[slot];
                     if (item) {
-                        let statsArray = Array.isArray(item.stats) ? item.stats : Object.values(item.stats);
+                        // ⭐ 安全转换 stats
+                        let statsArray: any[] = [];
+                        if (item.stats) {
+                            if (Array. isArray(item.stats)) {
+                                statsArray = item. stats;
+                            } else {
+                                for (const k in item.stats) {
+                                    const stat = item.stats[k];
+                                    if (stat && stat. attribute) {
+                                        statsArray.push(stat);
+                                    }
+                                }
+                            }
+                        }
                         
-                        // ⭐ 加载词缀详情
-                        let affixDetailsArray = undefined;
+                        // ⭐ 安全转换 affixDetails
+                        let affixDetailsArray: any[] | undefined = undefined;
                         if (item.affixDetails) {
-                            affixDetailsArray = Array.isArray(item.affixDetails) 
-                                ? item.affixDetails 
-                                : Object.values(item.affixDetails);
+                            const tempArr: any[] = [];
+                            
+                            if (Array.isArray(item.affixDetails)) {
+                                tempArr.push(...item.affixDetails);
+                            } else if (typeof item.affixDetails === 'object') {
+                                for (const k in item.affixDetails) {
+                                    const affix = item.affixDetails[k];
+                                    if (affix && affix.name) {
+                                        tempArr.push(affix);
+                                    }
+                                }
+                            }
+                            
+                            if (tempArr.length > 0) {
+                                affixDetailsArray = tempArr;
+                                print(`[EquipmentVaultSystem] 加载装备槽 ${slot}: ${item.name}，词缀数量: ${tempArr.length}`);
+                            }
                         }
                         
                         equipment[slot] = { 
