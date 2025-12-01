@@ -4,6 +4,7 @@
  */
 
 export function InitCharacterStatsHandler(): void {
+    
     print('[CharacterStatsHandler] 初始化角色属性请求处理');
     
     CustomGameEventManager.RegisterListener('request_character_stats', (_, data: any) => {

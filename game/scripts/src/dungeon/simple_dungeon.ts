@@ -73,6 +73,7 @@ export class SimpleDungeon {
                 const player = PlayerResource.GetPlayer(playerId);
                 if (player) {
                     // ⭐ 序列化仓库数据
+                    /*
                     const vault = EquipmentVaultSystem.GetVault(playerId);
                     const serializedVault = this.SerializeItems(vault);
                     
@@ -128,7 +129,7 @@ export class SimpleDungeon {
                         equipment: serializedEquipment
                     });
                     print(`[SimpleDungeon] ✓ 装备数据已发送`);
-                    
+                    */
                     GameRules.SendCustomMessage(
                         "✅ 装备成功！",
                         playerId,
