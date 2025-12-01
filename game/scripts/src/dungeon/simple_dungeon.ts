@@ -18,11 +18,11 @@ export class SimpleDungeon {
     private currentRoom: number = 0;
     private playerId: PlayerID | undefined;
     private bossManager: ShadowFiendBoss | undefined;
-    private currentDifficulty: DungeonDifficulty = DungeonDifficulty. NORMAL_1;
+    private currentDifficulty: DungeonDifficulty = DungeonDifficulty.NORMAL_1;
     private currentRewards: ExternalRewardItem[] = [];
     
     constructor() {
-        print("=". repeat(50));
+        print("=".repeat(50));
         print("[SimpleDungeon] Constructor called!");
         print("=".repeat(50));
         
@@ -36,7 +36,7 @@ export class SimpleDungeon {
 
     private ListenToChatCommand(): void {
         ListenToGameEvent("player_chat", (event) => {
-            const text = event.text. trim();
+            const text = event.text.trim();
             const playerId = event.playerid as PlayerID;
             
             print(`[SimpleDungeon] Received chat: "${text}"`);
@@ -49,7 +49,7 @@ export class SimpleDungeon {
             if (text === "-vault" || text === "vault" || text === "-v" || text === "v") {
                 const player = PlayerResource.GetPlayer(playerId);
                 if (player) {
-                    (CustomGameEventManager. Send_ServerToPlayer as any)(player, 'show_vault_ui', {});
+                    (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'show_vault_ui', {});
                     
                     const vault = EquipmentVaultSystem.GetVault(playerId);
                     const serializedVault = this.SerializeItems(vault);
@@ -69,11 +69,10 @@ export class SimpleDungeon {
             
             print(`[SimpleDungeon] 玩家${playerId}从 UI 装备索引${index}的物品`);
             
-            if (EquipmentVaultSystem. EquipItem(playerId, index)) {
+            if (EquipmentVaultSystem.EquipItem(playerId, index)) {
                 const player = PlayerResource.GetPlayer(playerId);
                 if (player) {
                     // ⭐ 序列化仓库数据
-                    /*
                     const vault = EquipmentVaultSystem.GetVault(playerId);
                     const serializedVault = this.SerializeItems(vault);
                     
@@ -90,46 +89,15 @@ export class SimpleDungeon {
                         }
                     }
                     
-                    print(`[SimpleDungeon] ========== 准备发送数据 ==========`);
-                    print(`[SimpleDungeon] 仓库数量: ${serializedVault.length}`);
-                    print(`[SimpleDungeon] 装备槽位数量: ${Object.keys(serializedEquipment).length}`);
-                    
-                    // 检查序列化后的数据
-                    serializedVault.forEach((item, idx) => {
-                        let affixInfo = 'nil';
-                        if (item. affixDetails && Array.isArray(item.affixDetails)) {
-                            affixInfo = `${item.affixDetails.length}个`;
-                        }
-                        print(`[SimpleDungeon]   仓库[${idx}]: ${item.name}, affixDetails: ${affixInfo}`);
-                    });
-                    
-                    // 检查每个装备槽位
-                    for (const slot in serializedEquipment) {
-                        const item = serializedEquipment[slot];
-                        if (item) {
-                            let affixInfo = 'nil';
-                            if (item.affixDetails && Array.isArray(item.affixDetails)) {
-                                affixInfo = `${item.affixDetails.length}个`;
-                            }
-                            print(`[SimpleDungeon]   装备[${slot}]: ${item.name}, affixDetails: ${affixInfo}`);
-                        } else {
-                            print(`[SimpleDungeon]   装备[${slot}]: null`);
-                        }
-                    }
-                    
-                    print(`[SimpleDungeon] ========== 开始发送 ==========`);
-                    
                     // ⭐ 发送数据
                     (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_vault_ui', {
                         items: serializedVault
                     });
-                    print(`[SimpleDungeon] ✓ 仓库数据已发送`);
                     
                     (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_equipment_ui', {
                         equipment: serializedEquipment
                     });
-                    print(`[SimpleDungeon] ✓ 装备数据已发送`);
-                    */
+                    
                     GameRules.SendCustomMessage(
                         "✅ 装备成功！",
                         playerId,
@@ -150,24 +118,41 @@ export class SimpleDungeon {
         print("[SimpleDungeon] Chat listener registered");
     }
 
-    // ⭐ 安全序列化单个装备（现在 affixDetails 一定是数组或 undefined）
-    private SerializeItem(item: ExternalRewardItem): any {
-        const serialized: any = {
-            name: item.name,
-            type: item.type,
-            icon: item.icon,
-            stats: item.stats,
-            rarity: item.rarity,
-        };
+// ⭐ 安全序列化单个装备
+private SerializeItem(item: ExternalRewardItem): any {
+    const serialized: any = {
+        name: item.name,
+        type: item.type,
+        icon: item.icon,
+        stats: item. stats,
+        rarity: item.rarity,
+    };
+    
+    // ⭐ 安全处理 affixDetails
+    if (item. affixDetails) {
+        const affixArray: any[] = [];
+        const affixData = item.affixDetails as any;
         
-        // ⭐ 现在 affixDetails 一定是数组（或 undefined）
-        if (item.affixDetails && item.affixDetails.length > 0) {
-            const affixArray: any[] = [];
-            
-            for (let i = 0; i < item.affixDetails.length; i++) {
-                const affix = item.affixDetails[i];
+        // 尝试作为数组处理
+        if (affixData. length !== undefined && affixData.length > 0) {
+            for (let i = 0; i < affixData. length; i++) {
+                const affix = affixData[i];
                 if (affix && affix.name) {
-                    affixArray. push({
+                    affixArray.push({
+                        position: affix.position || 'prefix',
+                        tier: affix.tier || 1,
+                        name: affix.name || '',
+                        description: affix. description || '',
+                        color: affix.color || '#ffffff',
+                    });
+                }
+            }
+        } else {
+            // 作为对象处理，尝试索引 0-9
+            for (let i = 0; i < 10; i++) {
+                const affix = affixData[i] || affixData[i.toString()];
+                if (affix && affix.name) {
+                    affixArray.push({
                         position: affix.position || 'prefix',
                         tier: affix.tier || 1,
                         name: affix.name || '',
@@ -176,14 +161,15 @@ export class SimpleDungeon {
                     });
                 }
             }
-            
-            if (affixArray.length > 0) {
-                serialized. affixDetails = affixArray;
-            }
         }
         
-        return serialized;
+        if (affixArray.length > 0) {
+            serialized.affixDetails = affixArray;
+        }
     }
+    
+    return serialized;
+}
 
     // ⭐ 序列化装备数组
     private SerializeItems(items: ExternalRewardItem[]): any[] {
@@ -224,22 +210,22 @@ export class SimpleDungeon {
         
         const difficultyMap: Record<string, DungeonDifficulty> = {
             "easy_1": DungeonDifficulty.EASY_1,
-            "easy_2": DungeonDifficulty. EASY_2,
+            "easy_2": DungeonDifficulty.EASY_2,
             "easy_3": DungeonDifficulty.EASY_3,
             "normal_1": DungeonDifficulty.NORMAL_1,
-            "normal_2": DungeonDifficulty. NORMAL_2,
+            "normal_2": DungeonDifficulty.NORMAL_2,
             "normal_3": DungeonDifficulty.NORMAL_3,
-            "hard_1": DungeonDifficulty. HARD_1,
+            "hard_1": DungeonDifficulty.HARD_1,
             "hard_2": DungeonDifficulty.HARD_2,
-            "hard_3": DungeonDifficulty. HARD_3
+            "hard_3": DungeonDifficulty.HARD_3
         };
         
-        this. currentDifficulty = difficultyMap[diff] || DungeonDifficulty.NORMAL_1;
+        this.currentDifficulty = difficultyMap[diff] || DungeonDifficulty.NORMAL_1;
         this.playerId = playerId;
         this.currentRoom = 1;
         
         const hero = PlayerResource.GetSelectedHeroEntity(playerId);
-        if (!hero) {
+        if (! hero) {
             print("[SimpleDungeon] ERROR: No hero found!");
             return;
         }
@@ -336,7 +322,7 @@ export class SimpleDungeon {
         if (boss.IsHero()) {
             const heroBoss = boss as CDOTA_BaseNPC_Hero;
             
-            heroBoss.SetTeam(DotaTeam. BADGUYS);
+            heroBoss.SetTeam(DotaTeam.BADGUYS);
             heroBoss.SetAbilityPoints(0);
             
             for (let i = 1; i <= 10; i++) {
@@ -344,7 +330,7 @@ export class SimpleDungeon {
             }
             
             heroBoss.SetBaseStrength(Math.floor(500 * multiplier));
-            heroBoss.SetBaseAgility(Math. floor(50 * multiplier));
+            heroBoss.SetBaseAgility(Math.floor(50 * multiplier));
             heroBoss.SetBaseIntellect(Math.floor(50 * multiplier));
             heroBoss.SetHealth(heroBoss.GetMaxHealth());
             heroBoss.SetMana(heroBoss.GetMaxMana());
@@ -377,7 +363,7 @@ export class SimpleDungeon {
                     }
                     
                     Timers.CreateTimer(0.3, () => {
-                        if (!boss.IsAlive()) return undefined;
+                        if (! boss.IsAlive()) return undefined;
                         
                         print("[SimpleDungeon] Adding shadow_explosion ability...");
                         
@@ -401,7 +387,7 @@ export class SimpleDungeon {
                             print("[SimpleDungeon] ✓ Boss Manager initialized!");
                             
                             Timers.CreateTimer(1, () => {
-                                if (!boss.IsAlive()) return undefined;
+                                if (! boss.IsAlive()) return undefined;
                                 
                                 boss.RemoveModifierByName("modifier_invulnerable");
                                 print("[SimpleDungeon] ✓ Boss is now vulnerable!  Fight begins!");
@@ -458,7 +444,7 @@ export class SimpleDungeon {
             ParticleAttachment.ABSORIGIN_FOLLOW,
             boss
         );
-        ParticleManager.SetParticleControl(particle, 0, boss. GetAbsOrigin());
+        ParticleManager.SetParticleControl(particle, 0, boss.GetAbsOrigin());
         
         print(`[SimpleDungeon] Boss enhanced!  HP: ${boss.GetMaxHealth()}`);
     }
@@ -467,10 +453,10 @@ export class SimpleDungeon {
         print("[SimpleDungeon] Triggering reward selection!");
 
         const playerId = this.playerId;
-        if (! playerId) return;
+        if (!playerId) return;
 
         this.currentRewards = this.GenerateRewards();
-        print(`[SimpleDungeon] Generated rewards: ${this.currentRewards. map(r => r.name).join(", ")}`);
+        print(`[SimpleDungeon] Generated rewards: ${this.currentRewards.map(r => r.name).join(", ")}`);
 
         const player = PlayerResource.GetPlayer(playerId);
         if (player) {
@@ -489,12 +475,12 @@ export class SimpleDungeon {
 
     private GenerateRewards(): ExternalRewardItem[] {
         const rewards: ExternalRewardItem[] = [];
-        const pool = [... EXTERNAL_REWARD_POOL];
+        const pool = [...EXTERNAL_REWARD_POOL];
 
         for (let i = 0; i < 3; i++) {
             if (pool.length === 0) break;
 
-            const randomIndex = Math.floor(Math.random() * pool. length);
+            const randomIndex = Math.floor(Math.random() * pool.length);
             rewards.push(pool[randomIndex]);
             pool.splice(randomIndex, 1);
         }
@@ -518,7 +504,7 @@ export class SimpleDungeon {
                 print(`[SimpleDungeon] ✓ 已保存奖励：${selectedReward.name}`);
                 
                 const statsText = selectedReward.stats.map(s => `${s.attribute} +${s.value}`).join(", ");
-                GameRules. SendCustomMessage(
+                GameRules.SendCustomMessage(
                     `<font color='#FF6EC7'>💾 已保存装备：${selectedReward.name} (${statsText})</font>`,
                     playerId,
                     0
@@ -537,14 +523,14 @@ export class SimpleDungeon {
 
         const index = this.monsters.indexOf(killedUnit as CDOTA_BaseNPC);
         if (index !== -1) {
-            this. monsters.splice(index, 1);
+            this.monsters.splice(index, 1);
             print(`[SimpleDungeon] Monster killed!  Remaining: ${this.monsters.length}`);
 
             if (this.monsters.length === 0) {
                 print(`[SimpleDungeon] 所有怪物已被击杀，房间 ${this.currentRoom} 清空`);
                 
                 if (this.currentRoom === 3 && this.playerId !== undefined) {
-                    LootSystem. DropBossLoot(
+                    LootSystem.DropBossLoot(
                         killedUnit as CDOTA_BaseNPC, 
                         this.currentDifficulty, 
                         this.playerId
@@ -565,7 +551,7 @@ export class SimpleDungeon {
 
         if (this.currentRoom === 1) {
             GameRules.SendCustomMessage(
-                "<font color='#00FF00'>✓ 房间1清空！3秒后传送到房间2... </font>", 
+                "<font color='#00FF00'>✓ 房间1清空！3秒后传送到房间2...</font>", 
                 this.playerId, 
                 0
             );

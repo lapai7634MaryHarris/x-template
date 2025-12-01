@@ -59,24 +59,35 @@ export const VaultUI: React.FC<VaultUIProps> = ({ visible, onClose }) => {
         };
     }, []);
     
-    // ==================== 辅助函数：提取前后缀 ====================
-    const extractAffixes = (affixDetails: any) => {
-        const prefixes: any[] = [];
-        const suffixes: any[] = [];
-        
-        if (affixDetails) {
-            for (const key in affixDetails) {
-                const affix = affixDetails[key];
-                if (affix && affix.position === 'prefix') {
+ // ==================== 辅助函数：提取前后缀（修复版 - 添加空值检查）====================
+const extractAffixes = (affixDetails: any) => {
+    const prefixes: any[] = [];
+    const suffixes: any[] = [];
+    
+    // ⭐ 添加空值检查
+    if (! affixDetails) {
+        return { prefixes, suffixes };
+    }
+    
+    // ⭐ 安全遍历
+    try {
+        for (const key in affixDetails) {
+            const affix = affixDetails[key];
+            // ⭐ 确保 affix 存在且有必要的属性
+            if (affix && typeof affix === 'object' && affix.position) {
+                if (affix.position === 'prefix') {
                     prefixes.push(affix);
-                } else if (affix && affix.position === 'suffix') {
+                } else if (affix.position === 'suffix') {
                     suffixes.push(affix);
                 }
             }
         }
-        
-        return { prefixes, suffixes };
-    };
+    } catch (e) {
+        // 忽略错误，返回空数组
+    }
+    
+    return { prefixes, suffixes };
+};
     
     // ==================== 数据加载逻辑 ====================
     useEffect(() => {
