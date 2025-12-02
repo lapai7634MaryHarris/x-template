@@ -1,0 +1,159 @@
+// 装备仓库窗口
+.vault_window {
+    width: 1050px;
+    horizontal-align: center;
+    vertical-align: center;
+    background-color: #1c1410;
+    border: 4px solid #8b7355;
+    flow-children: down;
+    z-index: 100;
+}
+
+// 标题栏
+.vault_title_bar {
+    width: 100%;
+    height: 50px;
+    background-color: #2a1f1a;
+    border-bottom: 3px solid #8b7355;
+    flow-children: right;
+    padding: 0px 15px;
+}
+
+.vault_title {
+    font-size: 28px;
+    color: #ffd700;
+    font-weight: bold;
+    vertical-align: center;
+}
+
+.vault_count {
+    font-size: 18px;
+    color: #cccccc;
+    vertical-align: center;
+    margin-left: 15px;
+}
+
+.vault_spacer {
+    width: fill-parent-flow(1.0);
+    height: 1px;
+}
+
+.vault_close_btn {
+    width: 36px;
+    height: 36px;
+    background-color: #aa0000;
+    border: 2px solid #ff4444;
+    vertical-align: center;
+    
+    &:hover {
+        background-color: #cc3333;
+    }
+    
+    Label {
+        color: white;
+        font-size: 22px;
+        font-weight: bold;
+        text-align: center;
+        horizontal-align: center;
+        vertical-align: center;
+    }
+}
+
+// 主内容区 - 左右布局
+.vault_main {
+    width: 100%;
+    padding: 15px;
+    flow-children: right;
+}
+
+// 物品网格
+.vault_grid {
+    width: 700px;
+    flow-children: right-wrap;
+    padding: 10px;
+    background-color: #0a0808;
+    border: 2px solid #5a4a3a;
+}
+
+.vault_slot {
+    width: 80px;
+    height: 80px;
+    margin: 2px;
+    background-color: #0a0a0a;
+    background-size: cover;
+    background-position: center;
+    
+    &:hover {
+        brightness: 1.2;
+    }
+}
+
+.vault_slot_empty {
+    width: 80px;
+    height: 80px;
+    margin: 2px;
+    background-color: #0a0a0a;
+    border: 2px solid #3a3a3a;
+}
+
+// 右侧信息面板
+.vault_info_panel {
+    width: 300px;
+    min-height: 400px;
+    margin-left: 15px;
+    flow-children: down;
+}
+
+.vault_empty_info {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    background-color: #0a0a0a66;
+    border: 2px solid #3a3a3a;
+    flow-children: down;
+    vertical-align: center;
+}
+
+.vault_detail {
+    width: 100%;
+    padding: 12px;
+    background-color: #0a0a0a99;
+    flow-children: down;
+}
+
+.vault_btn_equip {
+    width: 120px;
+    height: 36px;
+    background-color: #1a5a1a;
+    border: 2px solid #2a8a2a;
+    margin-right: 10px;
+    
+    &:hover {
+        background-color: #2a7a2a;
+    }
+    
+    Label {
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        text-align: center;
+    }
+}
+
+.vault_btn_cancel {
+    width: 120px;
+    height: 36px;
+    background-color: #3a3a3a;
+    border: 2px solid #4a4a4a;
+    
+    &:hover {
+        background-color: #4a4a4a;
+    }
+    
+    Label {
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        text-align: center;
+    }
+}

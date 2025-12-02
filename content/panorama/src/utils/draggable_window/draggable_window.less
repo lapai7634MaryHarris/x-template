@@ -1,68 +1,36 @@
 .draggable_window {
-    border: 1px solid #2e2e2ecb;
     background-color: gradient(linear, 0% 100%, 100% 100%, from(#373737), to(#2a2a2a));
-    opacity: 0.8;
-    border-radius: 5px;
-    box-shadow: 0px 0px 8px #00000080;
-    transition-property: opacity;
-    transition-duration: 0.2s;
-    transition-timing-function: ease-in-out;
+    border: 2px solid #555555;
+    opacity: 1;
+    box-shadow: 0px 0px 10px #00000088;
     flow-children: down;
-    min-width: 100px;
-    min-height: 100px;
-    z-index: 220;
+    z-index: 100;
     
     .window_title_bar {
-        height: 36px;
         width: 100%;
+        height: 40px;
         background-color: gradient(linear, 0% 0%, 100% 0%, from(#444444), to(#333333));
-        border-radius: 5px 5px 0px 0px;
         flow-children: right;
         padding: 0px 10px;
         
-        .window_icon {
-            width: 24px;
-            height: 24px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            margin-right: 8px;
-            margin-top: 8px;
-            wash-color: #c4ecff;
-        }
-        
         .window_title {
-            font-size: 18px;
+            font-size: 20px;
             color: #ffffff;
             font-weight: bold;
-            margin-top: 8px;
+            vertical-align: center;
             text-shadow: 1px 1px 2px #000000;
-            text-overflow: ellipsis;
         }
         
         .window_close_button {
-            width: 28px;
-            height: 28px;
-            // margin-top: 8px;
-            background-color: #2e2e2e;
-            border-radius: 3px;
-            align: right center;
+            width: 30px;
+            height: 30px;
+            background-color: #aa0000;
+            border: 1px solid #ff4444;
+            vertical-align: center;
+            margin-left: auto;
             
             &:hover {
-                brightness: 1.2;
-            }
-
-            &:focus {
-                brightness: 1.2;
-                border: 1px solid white;
-            }
-            
-            &:active {
-                brightness: 0.8;
-            }
-
-            &:focus{
-                brightness: 1.2;
+                background-color: #cc2222;
             }
             
             Label {
@@ -72,12 +40,13 @@
                 text-align: center;
                 horizontal-align: center;
                 vertical-align: center;
-                text-shadow: 1px 1px 1px #000000;
             }
         }
     }
     
     .window_content {
+        width: 100%;
         flow-children: down;
+        padding: 10px;
     }
 }
