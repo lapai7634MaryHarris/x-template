@@ -10,7 +10,23 @@ declare interface XNetTableDefinitions {
     settings: {
         basicSettings: BasicSettings;
     };
+    performance_debug: {
+        [key: string]: any;
+    };
+    
+    // ⭐⭐⭐ 装备仓库数据
+    equipment_data: {
+        vault: {
+            items: VaultItemData[];
+            maxSize: number;
+        };
+        equipped: {
+            [slot: string]: VaultItemData | null;
+        };
+        stats: EquipmentTotalStats;
+    };
 }
+
 
 declare interface BasicSettings {}
 
@@ -41,3 +57,47 @@ declare interface XNetTableDataJSON {
     key: string;
     value: any;
 }
+
+// ⭐ 装备物品数据结构
+declare interface VaultItemData {
+    id: string;
+    name: string;
+    type: string;
+    icon: string;
+    rarity: number;
+    stats: Array<{ attribute: string; value: number }>;
+    // ⭐ 修改：affixDetails 改为数组类型
+    affixDetails?: AffixDetailData[];
+}
+
+// ⭐ 词缀详情
+declare interface AffixDetailData {
+    position: string;
+    tier: number;
+    name: string;
+    description: string;
+    color?: string;
+}
+
+// ⭐ 装备总属性
+declare interface EquipmentTotalStats {
+    strength: number;
+    agility: number;
+    intelligence: number;
+    armor: number;
+    health: number;
+    mana: number;
+    attack_damage: number;
+    attack_speed: number;
+    move_speed: number;
+    magic_resistance: number;
+    crit_chance: number;
+    crit_multiplier: number;
+    cooldown_reduction: number;
+    fire_resistance: number;
+    cold_resistance: number;
+    lightning_resistance: number;
+    evasion: number;
+}
+
+declare interface BasicSettings {}

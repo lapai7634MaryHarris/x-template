@@ -450,10 +450,7 @@ const Root: FC = () => {
             setRewardVisible(true);
         });
         
-        const listenerVault = GameEvents.Subscribe('show_vault_ui', () => {
-            $.Msg('[Root] 收到 show_vault_ui 事件');
-            setVaultVisible(true);
-        });
+       
 
         const listenerEquipment = GameEvents.Subscribe('show_equipment_ui', () => {
             $.Msg('[Root] 收到 show_equipment_ui 事件');
@@ -476,7 +473,7 @@ const Root: FC = () => {
         return () => {
             GameEvents.Unsubscribe(listenerMenu);
             GameEvents.Unsubscribe(listenerReward);
-            GameEvents.Unsubscribe(listenerVault);
+         
             GameEvents.Unsubscribe(listenerEquipment);
             GameEvents.Unsubscribe(listenerSkillTree);
             GameEvents.Unsubscribe(listenerClassConfirmed);

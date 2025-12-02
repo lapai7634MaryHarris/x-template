@@ -1,11 +1,13 @@
 import { BaseModifier, registerModifier } from "../utils/dota_ts_adapter";
 
 /** @luaTable */
-declare const _G: any;
+declare const _G: {
+    EquipmentStats: { [playerId: number]: EquipmentTotalStats };
+};
 
 @registerModifier()
 export class modifier_equipment_system extends BaseModifier {
-    private stats = {
+    private stats: EquipmentTotalStats = {
         strength: 0,
         agility: 0,
         intelligence: 0,
@@ -16,6 +18,13 @@ export class modifier_equipment_system extends BaseModifier {
         attack_speed: 0,
         move_speed: 0,
         magic_resistance: 0,
+        crit_chance: 0,
+        crit_multiplier: 0,
+        cooldown_reduction: 0,
+        fire_resistance: 0,
+        cold_resistance: 0,
+        lightning_resistance: 0,
+        evasion: 0,
     };
 
     IsHidden(): boolean { return true; }
@@ -24,10 +33,16 @@ export class modifier_equipment_system extends BaseModifier {
 
     OnCreated(params: any): void {
         if (!IsServer()) return;
+        this.StartIntervalThink(0.1);
         this.LoadStatsFromGlobal();
     }
 
     OnRefresh(params: any): void {
+        if (!IsServer()) return;
+        this.LoadStatsFromGlobal();
+    }
+
+    OnIntervalThink(): void {
         if (!IsServer()) return;
         this.LoadStatsFromGlobal();
     }
@@ -53,8 +68,16 @@ export class modifier_equipment_system extends BaseModifier {
                 attack_speed: globalStats.attack_speed || 0,
                 move_speed: globalStats.move_speed || 0,
                 magic_resistance: globalStats.magic_resistance || 0,
+                crit_chance: globalStats.crit_chance || 0,
+                crit_multiplier: globalStats.crit_multiplier || 0,
+                cooldown_reduction: globalStats.cooldown_reduction || 0,
+                fire_resistance: globalStats.fire_resistance || 0,
+                cold_resistance: globalStats.cold_resistance || 0,
+                lightning_resistance: globalStats.lightning_resistance || 0,
+                evasion: globalStats.evasion || 0,
             };
             
+            // 使用 StackCount 同步攻速到客户端
             this.SetStackCount(this.stats.attack_speed);
         }
     }
@@ -72,6 +95,7 @@ export class modifier_equipment_system extends BaseModifier {
             ModifierFunction.ATTACKSPEED_BONUS_CONSTANT,
             ModifierFunction.MOVESPEED_BONUS_CONSTANT,
             ModifierFunction.MAGICAL_RESISTANCE_BONUS,
+            ModifierFunction.EVASION_CONSTANT,
         ];
     }
 
@@ -94,4 +118,5 @@ export class modifier_equipment_system extends BaseModifier {
     
     GetModifierMoveSpeedBonus_Constant(): number { return this.stats.move_speed || 0; }
     GetModifierMagicalResistanceBonus(): number { return this.stats.magic_resistance || 0; }
+    GetModifierEvasion_Constant(): number { return this.stats.evasion || 0; }
 }

@@ -30,8 +30,62 @@ export class SimpleDungeon {
         this.ListenToEvents();
         this.ListenToChatCommand();
         this.RegisterRewardSelectionListener();
+        this.RegisterEquipmentListeners();  // ⭐ 单独注册装备监听器
         
         print("[SimpleDungeon] Ready!  Type -start in chat");
+    }
+
+    // ⭐⭐⭐ 单独的装备事件监听器（只注册一次！）
+    private RegisterEquipmentListeners(): void {
+        // 装备物品
+        CustomGameEventManager.RegisterListener("equip_item_from_vault", (userId, event: any) => {
+            const playerId = event.PlayerID as PlayerID;
+            const index = event.index as number;
+            
+            print(`[SimpleDungeon] 玩家${playerId}从 UI 装备索引${index}的物品`);
+            
+            // ⭐ EquipmentVaultSystem.EquipItem 会自动调用 PushDataToClient
+            // 无需手动发送事件
+            if (EquipmentVaultSystem.EquipItem(playerId, index)) {
+                GameRules.SendCustomMessage("✅ 装备成功！", playerId, 0);
+                print(`[SimpleDungeon] 装备成功，已推送更新数据`);
+            } else {
+                GameRules.SendCustomMessage("❌ 装备失败！", playerId, 0);
+            }
+        });
+
+        // 卸下装备
+        CustomGameEventManager.RegisterListener("unequip_item", (userId, event: any) => {
+            const playerId = event.PlayerID as PlayerID;
+            const slot = event.slot as string;
+            
+            print(`[SimpleDungeon] 玩家${playerId}卸下槽位${slot}的装备`);
+            
+            if (EquipmentVaultSystem.UnequipItem(playerId, slot)) {
+                print(`[SimpleDungeon] ✓ 卸下成功，已推送更新数据`);
+            }
+        });
+
+        // 请求装备界面数据（兼容旧代码）
+        CustomGameEventManager.RegisterListener("request_equipment_data", (userId, event: any) => {
+            const playerId = event.PlayerID as PlayerID;
+            print(`[SimpleDungeon] 响应装备界面数据请求：${playerId}`);
+            
+            // 使用 XNetTable 推送数据
+            EquipmentVaultSystem.PushDataToClient(playerId);
+            print(`[SimpleDungeon] 发送装备界面数据`);
+        });
+
+        // 请求仓库数据（兼容旧代码）
+        CustomGameEventManager.RegisterListener("request_vault_data", (userId, event: any) => {
+            const playerId = event.PlayerID as PlayerID;
+            print(`[SimpleDungeon] 响应仓库数据请求：${playerId}`);
+            
+            // 使用 XNetTable 推送数据
+            EquipmentVaultSystem.PushDataToClient(playerId);
+        });
+
+        print("[SimpleDungeon] Equipment listeners registered");
     }
 
     private ListenToChatCommand(): void {
@@ -49,176 +103,17 @@ export class SimpleDungeon {
             if (text === "-vault" || text === "vault" || text === "-v" || text === "v") {
                 const player = PlayerResource.GetPlayer(playerId);
                 if (player) {
+                    // ⭐ 使用 XNetTable 推送数据
+                    EquipmentVaultSystem.PushDataToClient(playerId);
                     (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'show_vault_ui', {});
-                    
-                    const vault = EquipmentVaultSystem.GetVault(playerId);
-                    const serializedVault = this.SerializeItems(vault);
-                    
-                    (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_vault_ui', {
-                        items: serializedVault
-                    });
-                    
-                    print(`[SimpleDungeon] 打开仓库 UI，发送 ${vault.length} 件装备数据`);
+                    print(`[SimpleDungeon] 打开仓库 UI`);
                 }
             }
         }, this);
         
-CustomGameEventManager.RegisterListener("equip_item_from_vault", (userId, event: any) => {
-    const playerId = event.PlayerID as PlayerID;
-    const index = event.index as number;
-    
-    print(`[SimpleDungeon] 玩家${playerId}从 UI 装备索引${index}的物品`);
-    
-    if (EquipmentVaultSystem.EquipItem(playerId, index)) {
-        const player = PlayerResource.GetPlayer(playerId);
-        if (player) {
-            // ⭐ 发送仓库数据
-            const vault = EquipmentVaultSystem.GetVault(playerId);
-            const serializedVault = this.SerializeItems(vault);
-            
-            (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_vault_ui', {
-                items: serializedVault
-            });
-            
-            // ⭐⭐⭐ 使用 SerializeItem 来正确处理装备数据（包含 affixDetails）
-            const equipment = EquipmentVaultSystem.GetEquipment(playerId);
-            const serializedEquipment: any = {};
-            
-            for (const slot in equipment) {
-                const item = equipment[slot];
-                if (item) {
-                    serializedEquipment[slot] = this.SerializeItem(item);
-                } else {
-                    serializedEquipment[slot] = null;
-                }
-            }
-            
-            (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_equipment_ui', {
-                equipment: serializedEquipment
-            });
-            
-            GameRules.SendCustomMessage(
-                "✅ 装备成功！",
-                playerId,
-                0
-            );
-            
-            print(`[SimpleDungeon] 装备成功，已推送更新数据`);
-        }
-    } else {
-        GameRules.SendCustomMessage(
-            "❌ 装备失败！",
-            playerId,
-            0
-        );
-    }
-});
-CustomGameEventManager.RegisterListener("equip_item_from_vault", (userId, event: any) => {
-    const playerId = event.PlayerID as PlayerID;
-    const index = event.index as number;
-    
-    print(`[SimpleDungeon] 玩家${playerId}从 UI 装备索引${index}的物品`);
-    
-    if (EquipmentVaultSystem.EquipItem(playerId, index)) {
-        const player = PlayerResource.GetPlayer(playerId);
-        if (player) {
-            // ⭐⭐⭐ 使用 SerializeItems 序列化仓库数据（包含 affixDetails）
-            const vault = EquipmentVaultSystem.GetVault(playerId);
-            const serializedVault = this.SerializeItems(vault);
-            
-            (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_vault_ui', {
-                items: serializedVault
-            });
-            
-            // ⭐⭐⭐ 使用 SerializeItem 序列化装备数据（包含 affixDetails）
-            const equipment = EquipmentVaultSystem.GetEquipment(playerId);
-            const serializedEquipment: any = {};
-            
-            for (const slot in equipment) {
-                const item = equipment[slot];
-                if (item) {
-                    serializedEquipment[slot] = this.SerializeItem(item);
-                } else {
-                    serializedEquipment[slot] = null;
-                }
-            }
-            
-            (CustomGameEventManager.Send_ServerToPlayer as any)(player, 'update_equipment_ui', {
-                equipment: serializedEquipment
-            });
-            
-            GameRules.SendCustomMessage("✅ 装备成功！", playerId, 0);
-            print(`[SimpleDungeon] 装备成功，已推送更新数据`);
-        }
-    } else {
-        GameRules.SendCustomMessage("❌ 装备失败！", playerId, 0);
-    }
-});
+        // ⭐⭐⭐ 删除了重复的 equip_item_from_vault 监听器注册！
+        
         print("[SimpleDungeon] Chat listener registered");
-    }
-
-// ⭐ 安全序列化单个装备
-private SerializeItem(item: ExternalRewardItem): any {
-    const serialized: any = {
-        name: item.name,
-        type: item.type,
-        icon: item.icon,
-        stats: item.stats,
-        rarity: item.rarity,
-    };
-    
-    // ⭐ 安全处理 affixDetails
-    if (item.affixDetails) {
-        const affixArray: any[] = [];
-        const affixData = item.affixDetails as any;
-        
-        // 尝试作为数组处理
-        if (affixData.length !== undefined && affixData.length > 0) {
-            for (let i = 0; i < affixData.length; i++) {
-                const affix = affixData[i];
-                if (affix && affix.name) {
-                    affixArray.push({
-                        position: affix.position || 'prefix',
-                        tier: affix.tier || 1,
-                        name: affix.name || '',
-                        description: affix.description || '',
-                        color: affix.color || '#ffffff',
-                    });
-                }
-            }
-        } else {
-            // 作为对象处理，尝试索引 0-9
-            for (let i = 0; i < 10; i++) {
-                const affix = affixData[i] || affixData[i.toString()];
-                if (affix && affix.name) {
-                    affixArray.push({
-                        position: affix.position || 'prefix',
-                        tier: affix.tier || 1,
-                        name: affix.name || '',
-                        description: affix.description || '',
-                        color: affix.color || '#ffffff',
-                    });
-                }
-            }
-        }
-        
-        if (affixArray.length > 0) {
-            serialized.affixDetails = affixArray;
-        }
-    }
-    
-    return serialized;
-}
-
-    // ⭐ 序列化装备数组
-    private SerializeItems(items: ExternalRewardItem[]): any[] {
-        const serializedItems: any[] = [];
-        
-        for (let i = 0; i < items.length; i++) {
-            serializedItems.push(this.SerializeItem(items[i]));
-        }
-        
-        return serializedItems;
     }
 
     private RegisterCommand(): void {
@@ -407,7 +302,7 @@ private SerializeItem(item: ExternalRewardItem): any {
                         print("[SimpleDungeon] Adding shadow_explosion ability...");
                         
                         let explosionAbility = boss.FindAbilityByName("shadow_explosion");
-                        if (!explosionAbility) {
+                        if (! explosionAbility) {
                             explosionAbility = boss.AddAbility("shadow_explosion");
                         }
                         
@@ -647,7 +542,7 @@ private SerializeItem(item: ExternalRewardItem): any {
 
     private OnComplete(): void {
         print("=".repeat(50));
-        print("[SimpleDungeon] 🎉 DUNGEON COMPLETE! 🎉");
+        print("[SimpleDungeon] 🎉 DUNGEON COMPLETE!  🎉");
         print("=".repeat(50));
         
         if (this.playerId !== undefined) {
